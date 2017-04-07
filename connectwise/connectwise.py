@@ -14,10 +14,11 @@ class Connectwise:
     @classmethod
     def __cw_submit_get_request(cls, endpoint, conditions, filters=None):
         if filters is None:
-            filters = {
-                'page': 1,
-                'pageSize': 1000
-            }
+            filters = {'page': 1, 'pageSize': 1000}
+        if 'page' not in filters:
+            filters['page'] = 1
+        if 'pageSize' not in filters:
+            filters['pageSize'] = 1000
 
         filters_string = cls.__get_filters_string(endpoint, conditions, filters)
         r = requests.get('https://{}{}'.format(constants.CW_SERVER, filters_string), headers=constants.HEADERS)

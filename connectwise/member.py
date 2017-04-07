@@ -22,3 +22,10 @@ class Member:
         conditions = ['identifier="{}"'.format(identifier)]
         member = Connectwise.submit_request('system/members', conditions)[0]
         return Member(**member)
+
+    @classmethod
+    def fetch_all_members(cls):
+        conditions = ['identifier!="APIMember"']
+        filters = {'orderBy': 'lastName asc'}
+        return [cls(**member) for member in Connectwise.submit_request('system/members', conditions, filters)]
+
