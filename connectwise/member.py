@@ -15,13 +15,13 @@ class Member:
     def fetch_member_by_office_email(cls, officeEmail):
         conditions = ['officeEmail="{}"'.format(officeEmail)]
         member = Connectwise.submit_request('system/members', conditions)[0]
-        return Member(**member)
+        return cls(**member)
 
     @classmethod
     def fetch_member_by_identifier(cls, identifier):
         conditions = ['identifier="{}"'.format(identifier)]
         member = Connectwise.submit_request('system/members', conditions)[0]
-        return Member(**member)
+        return cls(**member)
 
     @classmethod
     def fetch_all_members(cls):
