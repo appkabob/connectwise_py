@@ -21,7 +21,7 @@ class Connectwise:
             filters['pageSize'] = 1000
 
         filters_string = cls.__get_filters_string(endpoint, conditions, filters, child_conditions)
-        r = requests.get('https://{}{}'.format(constants.CW_SERVER, filters_string), headers=constants.HEADERS)
+        r = requests.get('https://{}{}'.format(constants.CW_SERVER, filters_string), headers=constants.CW_HEADERS)
 
         if endpoint == 'system/reports/holiday':
             return json.loads(r.text)
@@ -45,7 +45,7 @@ class Connectwise:
             filters['page'] = page
             filters_string = cls.__get_filters_string(endpoint, conditions, filters, child_conditions)
             r = requests.get(r.links['next']['url'].replace('https://na.', 'https://api-na.', 1),
-                             headers=constants.HEADERS)
+                             headers=constants.CW_HEADERS)
 
         return json_data
 
