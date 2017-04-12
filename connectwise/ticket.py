@@ -50,6 +50,11 @@ class Ticket:
         conditions = 'type/name="{}" and member/identifier="{}"'.format('Professional Development', member_identifier)
         return [cls(**ticket) for ticket in Connectwise.submit_request('service/tickets', conditions)]
 
+    @classmethod
+    def fetch_by_board_names(cls, board_names=[]):
+        conditions = 'board/name="' + '" or board/name="'.join(board_names) + '"'
+        return [cls(**ticket) for ticket in Connectwise.submit_request('service/tickets', conditions)]
+
     def expense_cost(self):
         return '${}'.format(sum([expense.amount for expense in self.expense_entries]))
 

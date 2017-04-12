@@ -1,5 +1,7 @@
 import json
 import urllib.parse
+from datetime import date
+
 import requests
 import constants
 
@@ -65,3 +67,18 @@ class Connectwise:
             filters_string += '&orderBy={}'.format(urllib.parse.quote_plus(filters['orderBy']))
 
         return filters_string
+
+    @staticmethod
+    def current_fy():
+        if date.today().month > 6:
+            on_or_after = date(date.today().year, constants.FIRST_DAY_OF_FY['month'], constants.FIRST_DAY_OF_FY['day'])\
+                .strftime('%Y-%m-%d')
+            before = date(date.today().year + 1, constants.FIRST_DAY_OF_FY['month'], constants.FIRST_DAY_OF_FY['day'])\
+                .strftime('%Y-%m-%d')
+        else:
+            on_or_after = date(date.today().year - 1, constants.FIRST_DAY_OF_FY['month'], constants.FIRST_DAY_OF_FY['day'])\
+                .strftime('%Y-%m-%d')
+            before = date(date.today().year, constants.FIRST_DAY_OF_FY['month'], constants.FIRST_DAY_OF_FY['day'])\
+                .strftime('%Y-%m-%d')
+
+        return on_or_after, before

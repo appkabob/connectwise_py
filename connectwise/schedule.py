@@ -1,4 +1,7 @@
+import constants
+from .ticket import Ticket
 from .connectwise import Connectwise
+from datetime import date, timedelta
 
 
 class ScheduleEntry:
@@ -39,3 +42,36 @@ class ScheduleEntry:
     def fetch_by_object_id(cls, object_id):
         conditions = 'objectId={}'.format(object_id)
         return [cls(**schedule_entry) for schedule_entry in Connectwise.submit_request('schedule/entries', conditions)]
+
+    @classmethod
+    def fetch_by_date_range(cls, on_or_after, before):
+        conditions = 'dateStart>=[{}] and dateStart<[{}]'.format(on_or_after, before)
+        return [cls(**schedule_entry) for schedule_entry in Connectwise.submit_request('schedule/entries', conditions)]
+
+    @classmethod
+    def fetch_this_fy(cls):
+        on_or_after, before = Connectwise.current_fy()
+        conditions = 'dateStart>=[{}] and dateStart<[{}]'.format(on_or_after, before)
+        return [cls(**schedule_entry) for schedule_entry in Connectwise.submit_request('schedule/entries', conditions)]
+
+    @classmethod
+    def fetch_remaining_fy(cls):
+        on_or_after, before = Connectwise.current_fy()
+        on_or_after = date.today().strftime('%Y-%m-%d')
+        conditions = 'dateStart>=[{}] and dateStart<[{}]'.format(on_or_after, before)
+        return [cls(**schedule_entry) for schedule_entry in Connectwise.submit_request('schedule/entries', conditions)]
+
+    @classmethod
+    def fetch_upcoming(cls, days=30):
+        on_or_after = date.today().strftime('%Y-%m-%d')
+        before = date.today() + timedelta(days=days)
+        conditions = 'dateStart>=[{}] and dateStart<[{}]'.format(on_or_after, before)
+        return [cls(**schedule_entry) for schedule_entry in Connectwise.submit_request('schedule/entries', conditions)]
+
+    @classmethod
+    def fetch_upcoming_by_board_names(cls, board_names=[], days=30):
+        schedule_entries = cls.fetch_upcoming(days)
+        ticket_ids = set([schedule_entry.objectId for schedule_entry in schedule_entries])
+        tickets = Ticket.fetch_by_ids(ticket_ids)
+        board_ticket_ids = [ticket.id for ticket in tickets if ticket.board['name'] in board_names]
+        return [schedule_entry for schedule_entry in schedule_entries if schedule_entry.objectId in board_ticket_ids]
