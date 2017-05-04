@@ -15,6 +15,10 @@ class ScheduleEntry:
         return "<Schedule Entry {}>".format(self.id)
 
     @classmethod
+    def fetch_all(cls):
+        return [cls(**schedule_entry) for schedule_entry in Connectwise.submit_request('schedule/entries')]
+
+    @classmethod
     def fetch_by_object_ids(cls, object_ids, on_or_after=None, before=None):
 
         schedule_entries = []
@@ -34,6 +38,7 @@ class ScheduleEntry:
             conditions.append('objectId={}'.format(object_id))
             if i > 0 and i % 100 == 0:  # fetch schedule entries for 100 tickets at a time; any more and the query becomes too long
                 conditions = conditions_start + '(' + ' or '.join(conditions) + ')'
+                print(conditions)
                 schedule_entries.extend([cls(**schedule_entry) for schedule_entry in Connectwise.submit_request('schedule/entries', conditions)])
                 conditions = []
         return schedule_entries

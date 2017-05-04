@@ -1,3 +1,6 @@
+from decimal import Decimal
+
+from lib.connectwise_py.connectwise.member import Member
 from .connectwise import Connectwise
 
 
@@ -5,8 +8,11 @@ class TimeEntry:
     def __init__(self, chargeToId, chargeToType, **kwargs):
         self.chargeToId = chargeToId
         self.chargeToType = chargeToType
+        self.estHourlyCost = 0
+        self.estCost = 0
         for kwarg in kwargs:
             setattr(self, kwarg, kwargs[kwarg])
+        self.actualHours = Decimal(kwargs['actualHours'])
 
     def __repr__(self):
         return "<Time Entry {}>".format(self.chargeToId)
@@ -55,3 +61,24 @@ class TimeEntry:
                                      Connectwise.submit_request('time/entries', conditions)])
                 conditions = []
         return time_entries
+
+    def fetch_estimated_cost(self, members=None):
+
+        if members:
+            try:
+                member = [member for member in members if member.identifier == self.member['identifier']][0]
+            except IndexError:
+                return 0
+        else:
+            try:
+                member = Member.fetch_member_by_identifier(self.member['identifier'])
+            except IndexError:
+                return 0
+
+        self.estHourlyCost = Decimal(member.hourlyCost)
+
+        if self.workType['name'] == 'Professional Development':
+            self.estHourlyCost = self.estHourlyCost / 2
+
+        self.estCost = round(self.estHourlyCost * self.actualHours, 2)
+        return self.estCost
