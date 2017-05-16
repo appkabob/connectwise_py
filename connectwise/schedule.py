@@ -54,9 +54,10 @@ class ScheduleEntry:
         return [cls(**schedule_entry) for schedule_entry in Connectwise.submit_request('schedule/entries', conditions)]
 
     @classmethod
-    def fetch_this_fy(cls):
+    def fetch_this_fy(cls, member_identifier=None):
         on_or_after, before = Connectwise.current_fy()
         conditions = 'dateStart>=[{}] and dateStart<[{}]'.format(on_or_after, before)
+        if member_identifier: conditions += ' and member/identifier="{}"'.format(member_identifier)
         return [cls(**schedule_entry) for schedule_entry in Connectwise.submit_request('schedule/entries', conditions)]
 
     @classmethod

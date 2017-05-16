@@ -38,6 +38,17 @@ class TimeEntry:
         return [cls(**time_entry) for time_entry in Connectwise.submit_request('time/entries', conditions)]
 
     @classmethod
+    def fetch_by_date_range(cls, on_or_after=None, before=None):
+        conditions = []
+        if on_or_after:
+            conditions.append('timeStart>=[{}]'.format(on_or_after))
+        if before:
+            conditions.append('timeStart<[{}]'.format(before))
+
+        return [cls(**time_entry) for time_entry in
+                Connectwise.submit_request('time/entries', conditions)]
+
+    @classmethod
     def fetch_by_charge_to_ids(cls, charge_to_ids, on_or_after=None, before=None):
 
         time_entries = []
@@ -75,10 +86,13 @@ class TimeEntry:
             except IndexError:
                 return 0
 
+        if member.identifier == 'JEngel':
+            member
+
         self.estHourlyCost = Decimal(member.hourlyCost)
 
         if self.workType['name'] == 'Professional Development':
-            self.estHourlyCost = self.estHourlyCost / 2
+            self.estHourlyCost = round(self.estHourlyCost / 2, 2)
 
         self.estCost = round(self.estHourlyCost * self.actualHours, 2)
         return self.estCost

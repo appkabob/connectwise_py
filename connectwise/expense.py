@@ -35,7 +35,18 @@ class ExpenseEntry:
             conditions.append('chargeToId={}'.format(charge_to_id))
             if i > 0 and i % 50 == 0:  # fetch time entries for 100 tickets at a time; any more and the query becomes too long
                 conditions = conditions_start + '(' + ' or '.join(conditions) + ')'
-                expense_entries.extend([cls(**schedule_entry) for schedule_entry in
+                expense_entries.extend([cls(**expense_entry) for expense_entry in
                                      Connectwise.submit_request('expense/entries', conditions)])
                 conditions = []
         return expense_entries
+
+    @classmethod
+    def fetch_by_date_range(cls, on_or_after=None, before=None):
+        conditions = []
+        if on_or_after:
+            conditions.append('date>=[{}]'.format(on_or_after))
+        if before:
+            conditions.append('date<[{}]'.format(before))
+
+        return [cls(**expense_entry) for expense_entry in
+                                     Connectwise.submit_request('expense/entries', conditions)]
