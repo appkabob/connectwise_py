@@ -53,14 +53,24 @@ class Report:
         styles = getSampleStyleSheet()
 
         # Header
-        header = Paragraph(
-            '<font size=8><strong>Date Run:</strong> {}<br />'
-            '<strong>Filters:</strong> {}<br />'
-            '<strong>Sort:</strong> By {}</font>'.format(
-                datetime.today().strftime('%Y-%m-%d at %-I:%M%p'),
-                ' - '.join(['{}: {}'.format(k, v) for k, v in self.filters.items()]),
-                self.sort
-            ), styles['Normal'])
+        header_text = '<font size=8>'
+        header_text += '<strong>Date Run:</strong> {}'.format(datetime.today().strftime('%Y-%m-%d at %-I:%M%p'))
+        if self.filters:
+            header_text += '<br /><strong>Filters:</strong> {}'.format(' - '.join(['{}: {}'.format(k, v) for k, v in self.filters.items()]))
+        if self.sort:
+            header_text += '<br /><strong>Sort:</strong> By {}'.format(self.sort)
+        header_text += '</font>'
+
+        header = Paragraph(header_text, styles['Normal'])
+
+        # header = Paragraph(
+        #     '<font size=8><strong>Date Run:</strong> {}<br />'
+        #     '<strong>Filters:</strong> {}<br />'
+        #     '<strong>Sort:</strong> By {}</font>'.format(
+        #         datetime.today().strftime('%Y-%m-%d at %-I:%M%p'),
+        #         ' - '.join(['{}: {}'.format(k, v) for k, v in self.filters.items()]),
+        #         self.sort
+        #     ), styles['Normal'])
 
         w, h = header.wrap(doc.width, doc.topMargin)
         header.drawOn(canvas, doc.leftMargin, doc.height + doc.topMargin - h)
