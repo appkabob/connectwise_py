@@ -1,4 +1,5 @@
 import constants
+from lib.connectwise_py.connectwise.activity import Activity
 from .ticket import Ticket
 from .connectwise import Connectwise
 from datetime import date, timedelta
@@ -81,3 +82,27 @@ class ScheduleEntry:
         tickets = Ticket.fetch_by_ids(ticket_ids)
         board_ticket_ids = [ticket.id for ticket in tickets if ticket.board['name'] in board_names]
         return [schedule_entry for schedule_entry in schedule_entries if schedule_entry.objectId in board_ticket_ids]
+
+    @classmethod
+    def fetch_upcoming_by_project_ids(cls, project_ids=[], days=30):
+        schedule_entries = cls.fetch_upcoming(days)
+        ticket_ids = set([schedule_entry.objectId for schedule_entry in schedule_entries])
+        tickets = Ticket.fetch_by_ids(ticket_ids)
+        project_ticket_ids = [ticket.id for ticket in tickets if ticket.project and ticket.project['id'] in project_ids]
+        return [schedule_entry for schedule_entry in schedule_entries if schedule_entry.objectId in project_ticket_ids]
+
+    @classmethod
+    def fetch_by_company_id(cls, company_id, on_or_after=None, before=None):
+        conditions = []
+        if on_or_after:
+            conditions.append('dateStart>=[{}]'.format(on_or_after))
+        if before:
+            conditions.append('dateStart<[{}]'.format(before))
+        conditions = ' and '.join(conditions)
+        company_tickets = Ticket.fetch_by_company_id(company_id)
+        company_activities = Activity.fetch_by_company_id(company_id)
+        return [cls(**schedule_entry) for schedule_entry in Connectwise.submit_request('schedule/entries', conditions)
+                if schedule_entry['objectId'] == company_id or
+                schedule_entry['objectId'] in [ticket.id for ticket in company_tickets] or
+                schedule_entry['objectId'] in [activity.id for activity in company_activities]
+                ]

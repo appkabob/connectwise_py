@@ -56,6 +56,11 @@ class Ticket:
         return [cls(**ticket) for ticket in Connectwise.submit_request('service/tickets', conditions)]
 
     @classmethod
+    def fetch_by_company_id(cls, company_id):
+        conditions = 'company/id={}'.format(company_id)
+        return [cls(**ticket) for ticket in Connectwise.submit_request('service/tickets', conditions)]
+
+    @classmethod
     def fetch_all(cls):
         return [cls(**ticket) for ticket in Connectwise.submit_request('service/tickets')]
 
