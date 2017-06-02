@@ -37,3 +37,13 @@ class Contact:
                 [item['value'] for item in contact['communicationItems'] if item['communicationType'] == "Email"][0],
                 **contact
             ) for contact in contacts]
+
+    def get_phone(self, i=0):
+        return [communicationItem['value']
+                for communicationItem in self.communicationItems
+                if communicationItem['communicationType'] == 'Email'][i]
+
+    def get_email(self, i=0):
+        return [communicationItem['value']
+                for communicationItem in self.communicationItems
+                if communicationItem['communicationType'] == 'Phone'][i]
