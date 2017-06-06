@@ -8,6 +8,7 @@ class Ticket:
         self.schedule_entries = []
         self.time_entries = []
         self.expense_entries = []
+        self.notes = []
         for kwarg in kwargs:
             setattr(self, kwarg, kwargs[kwarg])
 
@@ -64,6 +65,11 @@ class Ticket:
     def fetch_all(cls):
         return [cls(**ticket) for ticket in Connectwise.submit_request('service/tickets')]
 
+    def fetch_notes(self, include_internal_analysis=False, include_detail_description=True):
+        return [note for note in Connectwise.submit_request('service/tickets/{}/notes'.format(self.id))
+                if note['internalAnalysisFlag'] == include_internal_analysis
+                and note['detailDescriptionFlag'] == include_detail_description]
+
     def expense_cost(self):
         return '${}'.format(sum([expense.amount for expense in self.expense_entries]))
 
@@ -81,3 +87,7 @@ class Ticket:
 
     def schedule_days(self):
         return round(self.schedule_hours() / 8, 2)
+
+    def est_nbr_consultants(self):
+        val = [field['value'] for field in self.customFields if field['id'] == 2]
+        return int(val[0]) if val and val[0] else 1
