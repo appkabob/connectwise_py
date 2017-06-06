@@ -33,7 +33,7 @@ class Project:
     def onsite_days(self, tickets=[]):
         if not tickets:
             tickets = Ticket.fetch_by_project_id(self.id)
-        return round(sum([math.ceil(ticket.budgetHours / 8) for ticket in tickets if ticket.serviceLocation['id'] == 1]), 2)
+        return round(sum([math.ceil(ticket.budgetHours / 8) * ticket.est_nbr_consultants() for ticket in tickets if ticket.serviceLocation['id'] == 1]), 2)
 
 
 class Phase:
