@@ -70,6 +70,9 @@ class Ticket:
     def actual_hours(self):
         return sum([time_entry.actualHours for time_entry in self.time_entries])
 
+    def budget_days(self):
+        return round(self.budgetHours / 8, 2)
+
     def actual_days(self):
         return round(self.actual_hours() / 8, 2)
 

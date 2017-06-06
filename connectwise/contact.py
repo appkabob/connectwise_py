@@ -41,9 +41,20 @@ class Contact:
     def get_phone(self, i=0):
         return [communicationItem['value']
                 for communicationItem in self.communicationItems
-                if communicationItem['communicationType'] == 'Email'][i]
+                if communicationItem['communicationType'] == 'Phone'][i]
+
+    def get_phone_extension(self, i=0):
+        return [communicationItem['extension']
+                for communicationItem in self.communicationItems
+                if communicationItem['communicationType'] == 'Phone'][i]
+
+    def get_phone_formatted(self, i=0):
+        phone = self.get_phone(i)
+        if len(phone) == 10:
+            return '({}) {}-{} {}'.format(phone[:3], phone[3:6], phone[6:10], self.get_phone_extension())
+        return phone
 
     def get_email(self, i=0):
         return [communicationItem['value']
                 for communicationItem in self.communicationItems
-                if communicationItem['communicationType'] == 'Phone'][i]
+                if communicationItem['communicationType'] == 'Email'][i]

@@ -39,6 +39,11 @@ class Company:
     def fetch_time_entries(self, on_or_after=None, before=None):
         return TimeEntry.fetch_by_company_id(self.id, on_or_after, before)
 
+    def phone_formatted(self):
+        if len(self.phoneNumber) == 10:
+            return '({}) {}-{}'.format(self.phoneNumber[:3], self.phoneNumber[3:6], self.phoneNumber[6:10])
+        return self.phoneNumber
+
     def fetch_recent_schedule_and_time(self, days=None, by=None):
         on_or_after = None
         if days:
