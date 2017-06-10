@@ -1,4 +1,3 @@
-import constants
 from lib.connectwise_py.connectwise.activity import Activity
 from .ticket import Ticket
 from .connectwise import Connectwise

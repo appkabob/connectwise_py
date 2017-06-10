@@ -3,7 +3,10 @@ import urllib.parse
 from datetime import date
 
 import requests
-import constants
+try:
+    import constants
+except ImportError:
+    pass
 
 
 class Connectwise:

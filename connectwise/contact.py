@@ -1,5 +1,8 @@
 from .connectwise import Connectwise
-import constants
+try:
+    import constants
+except ImportError:
+    pass
 
 class Contact:
     def __init__(self, email, **kwargs):
