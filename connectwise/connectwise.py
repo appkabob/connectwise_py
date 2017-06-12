@@ -4,14 +4,7 @@ import urllib.parse
 from datetime import date
 
 import requests
-try:
-    import constants
-except ImportError:
-    constants.CW_SERVER = os.environ.get('CW_SERVER')
-    constants.CW_HEADERS = os.environ.get('CW_HEADERS')
-    constants.CW_QUERY_URL = os.environ.get('CW_QUERY_URL')
-    constants.FIRST_DAY_OF_FY = os.environ.get('FIRST_DAY_OF_FY')
-
+import constants
 
 class Connectwise:
 
