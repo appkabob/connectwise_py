@@ -37,9 +37,10 @@ class Contact:
         return phones[i] if phones else None
 
     def get_phone_extension(self, i=0):
-        return [communicationItem['extension']
+        extensions = [communicationItem['extension']
                 for communicationItem in self.communicationItems
-                if communicationItem['communicationType'] == 'Phone'][i]
+                if communicationItem['communicationType'] == 'Phone']
+        return extensions[i] if extensions else None
 
     def get_phone_formatted(self, i=0):
         phone = self.get_phone(i)
