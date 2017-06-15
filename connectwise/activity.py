@@ -18,3 +18,8 @@ class Activity:
     def fetch_by_company_id(cls, company_id):
         conditions = 'company/id={}'.format(company_id)
         return [cls(**activity) for activity in Connectwise.submit_request('sales/activities', conditions)]
+
+    @classmethod
+    def fetch_by_id(cls, _id):
+        conditions = 'id={}'.format(_id)
+        return [cls(**activity) for activity in Connectwise.submit_request('sales/activities', conditions)]

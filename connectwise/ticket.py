@@ -57,6 +57,11 @@ class Ticket:
         return [cls(**ticket) for ticket in Connectwise.submit_request('service/tickets', conditions)]
 
     @classmethod
+    def fetch_by_member_identifier(cls, member_identifier):
+        conditions = 'resources contains "{}"'.format(member_identifier)
+        return [cls(**ticket) for ticket in Connectwise.submit_request('service/tickets', conditions)]
+
+    @classmethod
     def fetch_by_company_id(cls, company_id):
         conditions = 'company/id={}'.format(company_id)
         return [cls(**ticket) for ticket in Connectwise.submit_request('service/tickets', conditions)]
