@@ -94,5 +94,5 @@ class Ticket:
         return round(self.schedule_hours() / 8, 2)
 
     def est_nbr_consultants(self):
-        val = [field['value'] for field in self.customFields if field['id'] == 2]
+        val = [field['value'] if hasattr(field, 'value') else 1 for field in self.customFields if field['id'] == 2]
         return int(val[0]) if val and val[0] else 1
