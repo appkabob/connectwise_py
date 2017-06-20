@@ -40,7 +40,8 @@ class Project:
     def fetch_by_date_entered(cls, on_or_after=None, before=None):
         project_ids = [p['PM_Project_RecID'] for p in
                        SystemReport.fetch_project_headers_by_date_entered(on_or_after, before)]
-        return cls.fetch_by_id_range(min(project_ids), max(project_ids))
+        if project_ids:
+            return cls.fetch_by_id_range(min(project_ids), max(project_ids))
 
     def budget_days(self):
         if not hasattr(self, 'budgetHours') or self.budgetHours == 0:
