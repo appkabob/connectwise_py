@@ -2,6 +2,7 @@ import math
 
 import constants
 from lib.connectwise_py.connectwise.ticket import Ticket
+from .system_report import SystemReport
 from .connectwise import Connectwise
 
 
@@ -34,6 +35,12 @@ class Project:
         if low_id: conditions.append('id>={}'.format(low_id))
         if high_id: conditions.append('id<={}'.format(high_id))
         return [cls(**project) for project in Connectwise.submit_request('project/projects', conditions)]
+
+    @classmethod
+    def fetch_by_date_entered(cls, on_or_after=None, before=None):
+        project_ids = [p['PM_Project_RecID'] for p in
+                       SystemReport.fetch_project_headers_by_date_entered(on_or_after, before)]
+        return cls.fetch_by_id_range(min(project_ids), max(project_ids))
 
     def budget_days(self):
         return round(self.budgetHours / 8, 2)

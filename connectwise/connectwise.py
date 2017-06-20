@@ -25,7 +25,7 @@ class Connectwise:
         filters_string = cls.__get_filters_string(endpoint, conditions, filters, child_conditions)
         r = requests.get('https://{}{}'.format(constants.CW_SERVER, filters_string), headers=constants.CW_HEADERS)
 
-        if endpoint == 'system/reports/holiday':
+        if 'system/reports/' in endpoint:
             return json.loads(r.text)
 
         json_data = []
