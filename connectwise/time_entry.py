@@ -44,7 +44,7 @@ class TimeEntry:
         return [cls(**time_entry) for time_entry in Connectwise.submit_request('time/entries', conditions)]
 
     @classmethod
-    def fetch_by_date_range(cls, on_or_after=None, before=None):
+    def fetch_by_date_range(cls, on_or_after=None, before=None, fields=None):
         conditions = []
         if on_or_after:
             conditions.append('timeStart>=[{}]'.format(on_or_after))
@@ -52,7 +52,7 @@ class TimeEntry:
             conditions.append('timeStart<[{}]'.format(before))
 
         return [cls(**time_entry) for time_entry in
-                Connectwise.submit_request('time/entries', conditions)]
+                Connectwise.submit_request('time/entries', conditions, fields=fields)]
 
     @classmethod
     def fetch_by_company_id(cls, company_id, on_or_after=None, before=None):

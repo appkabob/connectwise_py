@@ -16,8 +16,8 @@ class Company:
         return "<Company {}>".format(self.identifier)
 
     @classmethod
-    def fetch_all(cls):
-        return [cls(**company) for company in Connectwise.submit_request('company/companies')]
+    def fetch_all(cls, fields=None):
+        return [cls(**company) for company in Connectwise.submit_request('company/companies', fields=fields)]
 
     @classmethod
     def fetch_all_active(cls):
@@ -43,6 +43,19 @@ class Company:
         if len(self.phoneNumber) == 10:
             return '({}) {}-{}'.format(self.phoneNumber[:3], self.phoneNumber[3:6], self.phoneNumber[6:10])
         return self.phoneNumber
+
+    def fetch_time_this_quarter(self, time_entries=None):
+        first_day_of_quarter = '2017-04-01T00:00:00Z'
+        if not time_entries:
+            return TimeEntry.fetch_by_company_id(self.id, first_day_of_quarter)
+        else:
+            # for time_entry in time_entries:
+            #     print(time_entry.company['id'])
+            #     print(self.id)
+            #     print(time_entry.timeStart)
+            #     print(first_day_of_quarter)
+            return [time_entry for time_entry in time_entries
+                            if time_entry.company['id'] == self.id]
 
     def fetch_recent_schedule_and_time(self, days=None, by=None):
         on_or_after = None
