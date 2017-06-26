@@ -3,12 +3,14 @@ from datetime import datetime, timedelta
 from lib.connectwise_py.connectwise.contact import Contact
 from lib.connectwise_py.connectwise.schedule import ScheduleEntry
 from lib.connectwise_py.connectwise.time_entry import TimeEntry
+from lib.connectwise_py.connectwise.invoice import Invoice
 from .connectwise import Connectwise
 
 
 class Company:
     def __init__(self, identifier, **kwargs):
         self.identifier = identifier
+        self.invoices = []
         for kwarg in kwargs:
             setattr(self, kwarg, kwargs[kwarg])
 
@@ -113,3 +115,14 @@ class Company:
             oldest_date += timedelta(days=1)
         print(schedule_and_time)
         return schedule_and_time
+
+    def fetch_invoices(self, invoices=None, on_or_after=None, before=None):
+        if invoices:
+            self.invoices = [i for i in invoices if i.company['id'] == self.id]
+        else:
+            self.invoices = Invoice.fetch_by_company(self.id, on_or_after, before)
+        return self.invoices
+
+    def fetch_invoiced_amount(self, invoices=None, on_or_after=None, before=None):
+        invoices = self.fetch_invoices(invoices, on_or_after, before)
+        return sum([i.total for i in invoices])
