@@ -118,7 +118,7 @@ class Company:
 
     def fetch_invoices(self, invoices=None, on_or_after=None, before=None):
         if invoices:
-            self.invoices = [i for i in invoices if i.company['id'] == self.id]
+            self.invoices = [i for i in invoices if i.company['id'] == self.id and on_or_after <= i.date[:10] < before]
         else:
             self.invoices = Invoice.fetch_by_company(self.id, on_or_after, before)
         return self.invoices
@@ -126,3 +126,14 @@ class Company:
     def fetch_invoiced_amount(self, invoices=None, on_or_after=None, before=None):
         invoices = self.fetch_invoices(invoices, on_or_after, before)
         return sum([i.total for i in invoices])
+
+    def fetch_time_entries_by_date_range(self, time_entries=[], on_or_after=None, before=None):
+        if time_entries:
+            self.time_entries = [t for t in time_entries if t.company['id'] == self.id and on_or_after <= t.timeStart[:10] < before]
+        else:
+            self.time_entries = TimeEntry.fetch_by_company_id(self.id, on_or_after, before)
+        return self.time_entries
+
+    def fetch_actual_days_by_date_range(self, time_entries=[], on_or_after=None, before=None):
+        time_entries = self.fetch_time_entries_by_date_range(time_entries, on_or_after, before)
+        return sum([t.actual_days() for t in time_entries])
