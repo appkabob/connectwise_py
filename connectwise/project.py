@@ -44,7 +44,7 @@ class Project:
             return cls.fetch_by_id_range(min(project_ids), max(project_ids))
 
     def budget_days(self):
-        if not hasattr(self, 'budgetHours') or self.budgetHours == 0:
+        if not hasattr(self, 'budgetHours') or self.budgetHours == 0 or not self.budgetHours:
             return 0
         return round(self.budgetHours / 8, 2)
 

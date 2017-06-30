@@ -96,5 +96,5 @@ class Ticket:
     def est_nbr_consultants(self):
         for field in self.customFields:
             if field['id'] == 2 and 'value' in field:
-                return int(field['value'])
+                return int(field['value']) if field['value'] else 1
         return 1
