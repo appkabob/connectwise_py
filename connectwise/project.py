@@ -2,6 +2,7 @@ import math
 
 import constants
 from lib.connectwise_py.connectwise.ticket import Ticket
+from lib.connectwise_py.connectwise.time_entry import TimeEntry
 from .system_report import SystemReport
 from .connectwise import Connectwise
 
@@ -58,6 +59,27 @@ class Project:
         business_unit_values = list(constants.BUSINESS_UNITS.values())
         business_unit_index = business_unit_values.index(self.businessUnitId)
         return business_unit_names[business_unit_index]
+
+    def fetch_tickets(self, tickets=[]):
+        if not tickets:
+            self.tickets = Ticket.fetch_by_project_id(self.id)
+        else:
+            self.tickets = [t for t in tickets if t.project['id'] == self.id]
+        return self.tickets
+
+    # def fetch_time_entries(self, time_entries=[]):
+    #     if not time_entries:
+    #         self.time_entries = TimeEntry.fetch_by_charge_to_ids([self.id])
+    #     else:
+    #         self.time_entries = [t for t in time_entries if t.project['id'] == self.id]
+    #     return self.time_entries
+    #
+    # def fetch_schedule_entries(self, schedule_entries=[]):
+    #     if not schedule_entries:
+    #         self.schedule_entries = TimeEntry.fetch_by_charge_to_ids([self.id])
+    #     else:
+    #         self.schedule_entries = [t for t in schedule_entries if t.project['id'] == self.id]
+    #     return self.schedule_entries
 
 
 class Phase:
