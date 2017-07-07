@@ -1,6 +1,8 @@
+from decimal import Decimal
+
 from lib.connectwise_py.connectwise.activity import Activity
-from .ticket import Ticket
-from .connectwise import Connectwise
+from lib.connectwise_py.connectwise.ticket import Ticket
+from lib.connectwise_py.connectwise.connectwise import Connectwise
 from datetime import date, timedelta
 
 
@@ -105,3 +107,6 @@ class ScheduleEntry:
                 schedule_entry['objectId'] in [ticket.id for ticket in company_tickets] or
                 schedule_entry['objectId'] in [activity.id for activity in company_activities]
                 ]
+
+    def days(self):
+        return Decimal(round(self.hours / 8, 2))
