@@ -1,4 +1,8 @@
+from decimal import Decimal
+
 from .connectwise import Connectwise
+# from lib.connectwise_py.connectwise.schedule import ScheduleEntry
+# from lib.connectwise_py.connectwise.time_entry import TimeEntry
 
 
 class Ticket:
@@ -78,16 +82,25 @@ class Ticket:
     def expense_cost(self):
         return '${}'.format(sum([expense.amount for expense in self.expense_entries]))
 
-    def actual_hours(self):
+    def actual_hours(self, time_entries=[]):
+        # if not time_entries:
+        #     self.time_entries = TimeEntry.fetch_by_charge_to_ids([self.id])
+        # else:
+        self.time_entries = [t for t in time_entries if t.chargeToId == self.id]
         return sum([time_entry.actualHours for time_entry in self.time_entries])
 
     def budget_days(self):
-        return round(self.budgetHours / 8, 2)
+        hours = self.budgetHours if hasattr(self, 'budgetHours') and self.budgetHours else 0
+        return Decimal(round(hours / 8, 2))
 
     def actual_days(self):
         return round(self.actual_hours() / 8, 2)
 
-    def schedule_hours(self):
+    def schedule_hours(self, schedule_entries=[]):
+        # if not schedule_entries:
+        #     self.schedule_entries = ScheduleEntry.fetch_by_object_id(self.id)
+        # else:
+        self.schedule_entries = [s for s in schedule_entries if s.objectId == self.id]
         return sum([schedule_entry.hours for schedule_entry in self.schedule_entries])
 
     def schedule_days(self):
