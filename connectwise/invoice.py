@@ -39,3 +39,9 @@ class Invoice:
 
         return [cls(**invoice) for invoice in
                 Connectwise.submit_request('finance/invoices', conditions)]
+
+    @classmethod
+    def fetch_by_project_id(cls, project_id):
+        conditions = ['applyToId={}'.format(project_id), 'applyToType="Project"']
+        return [cls(**invoice) for invoice in
+                Connectwise.submit_request('finance/invoices', conditions)]
