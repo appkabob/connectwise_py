@@ -1,8 +1,9 @@
 import math
 
+from decimal import Decimal
+
 import constants
 from lib.connectwise_py.connectwise.ticket import Ticket
-from lib.connectwise_py.connectwise.time_entry import TimeEntry
 from .system_report import SystemReport
 from .connectwise import Connectwise
 
@@ -59,6 +60,15 @@ class Project:
         business_unit_values = list(constants.BUSINESS_UNITS.values())
         business_unit_index = business_unit_values.index(self.businessUnitId)
         return business_unit_names[business_unit_index]
+
+    def estimated_revenue(self):
+        return Decimal(self.estimatedTimeRevenue + self.estimatedExpenseRevenue + self.estimatedProductRevenue)
+
+    def estimated_cost(self):
+        return Decimal(self.estimatedTimeCost + self.estimatedExpenseCost + self.estimatedProductCost)
+
+    def estimated_days(self):
+        return Decimal(round(self.estimatedHours / 8, 2))
 
     def fetch_tickets(self, tickets=[]):
         if not tickets:
