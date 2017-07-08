@@ -42,6 +42,27 @@ class Product:
             products.extend(cls.fetch_by_catalog_item_id(catalog_product_id))
         return products
 
+    @classmethod
+    def fetch_by_project_id(cls, project_id, ticket_ids=[], company_id=None, updated_on_or_after=None):
+        conditions = [
+            'chargeToId={}'.format(project_id),
+            'chargeToType="Project"'
+        ]
+        products = [cls(**product) for product in Connectwise.submit_request('procurement/products', conditions)]
+        if ticket_ids:
+            products.extend(cls.fetch_by_ticket_ids(ticket_ids, company_id, updated_on_or_after))
+        return [p for p in products if p.chargeToType == 'Project' or p.chargeToType == 'Ticket']
+
+    @classmethod
+    def fetch_by_ticket_ids(cls, ticket_ids, company_id=None, updated_on_or_after=None):
+        conditions = ['chargeToType="Ticket"']
+        if company_id:
+            conditions.append('company/id={}'.format(company_id))
+        if updated_on_or_after:
+            conditions.append('lastUpdated>=[{}]'.format(updated_on_or_after))
+        products = [cls(**product) for product in Connectwise.submit_request('procurement/products', conditions)]
+        return [p for p in products if p.chargeToId in ticket_ids]
+
 
 class CatalogProduct:
     def __init__(self, **kwargs):
