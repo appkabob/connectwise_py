@@ -65,6 +65,16 @@ class ExpenseEntry:
         return [cls(**expense_entry) for expense_entry in
                 Connectwise.submit_request('expense/entries', conditions)]
 
+    @classmethod
+    def fetch_by_company_id(cls, company_id, on_or_after=None, before=None):
+        conditions = ['company/id={}'.format(company_id)]
+        if on_or_after:
+            conditions.append('date>=[{}]'.format(on_or_after))
+        if before:
+            conditions.append('date<[{}]'.format(before))
+        return [cls(**expense_entry) for expense_entry in
+                Connectwise.submit_request('expense/entries', conditions)]
+
     def get_ticket(self, tickets=[]):
         if self.chargeToType == 'Activity':
             return Activity.fetch_by_id(self.chargeToId)
@@ -73,6 +83,11 @@ class ExpenseEntry:
                 return [ticket for ticket in tickets if self.chargeToId == ticket.id][0]
             return Ticket.fetch_by_id(self.chargeToId)
         return '{} {}'.format(self.chargeToType, self.chargeToId)
+
+    # def cost(self):
+    #     if self.paymentMethod['id'] ==  2 and self.classification['id'] == 2:  # if it's Paid by employee and Reimbursable
+    #         return self.invoiceAmount
+    #     return 0
 
     def get_charge_to_info(self, tickets=[], activities=[], charge_codes=[], return_type='string'):
         if self.chargeToType == 'Activity':
