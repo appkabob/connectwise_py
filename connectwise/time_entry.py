@@ -93,6 +93,12 @@ class TimeEntry:
     def actual_days(self):
         return round(self.actualHours / 8, 2)
 
+    def billable_amount(self):
+        if self.billableOption != 'Billable':
+            return 0
+        return self.hoursBilled * self.hourlyRate
+
+
     def fetch_estimated_cost(self, members=None):
 
         if members:
