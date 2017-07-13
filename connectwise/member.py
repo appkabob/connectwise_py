@@ -1,3 +1,6 @@
+from datetime import datetime
+
+import constants
 from .connectwise import Connectwise
 
 
@@ -29,3 +32,15 @@ class Member:
         filters = {'orderBy': 'lastName asc'}
         return [cls(**member) for member in Connectwise.submit_request('system/members', conditions, filters)]
 
+    def hourly_cost(self, on_date='today'):
+        if on_date.lower() == 'today':
+            return self.hourlyCost
+        on_date = datetime.strptime(on_date, '%Y-%m-%d')
+        if on_date.month >= 7:
+            fy = '{}-{}'.format(on_date.year, on_date.year + 1)
+        else:
+            fy = '{}-{}'.format(on_date.year - 1, on_date.year)
+        return constants.CONSULTANT_HOURLY_COSTS[self.identifier.lower()][fy]
+
+    def daily_cost(self, on_date='today'):
+        return round(self.hourly_cost(on_date) * 8, 2)
