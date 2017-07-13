@@ -95,8 +95,8 @@ class TimeEntry:
 
     def billable_amount(self):
         if self.billableOption != 'Billable':
-            return 0
-        return self.hoursBilled * self.hourlyRate
+            return Decimal(0)
+        return Decimal(self.hoursBilled * self.hourlyRate)
 
 
     def fetch_estimated_cost(self, members=None):
@@ -112,10 +112,10 @@ class TimeEntry:
             except IndexError:
                 return 0
 
-        if member.identifier == 'JEngel':
-            member
+        # if member.identifier == 'JEngel':
+        #     member
 
-        self.estHourlyCost = Decimal(member.hourlyCost)
+        self.estHourlyCost = Decimal(member.hourly_cost(self.timeStart[:10]))
 
         if self.workType['name'] == 'Professional Development':
             self.estHourlyCost = round(self.estHourlyCost / 2, 2)
