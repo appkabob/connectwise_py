@@ -1,4 +1,4 @@
-from decimal import Decimal
+from decimal import Decimal, ROUND_DOWN
 
 from lib.connectwise_py.connectwise.activity import Activity
 from lib.connectwise_py.connectwise.ticket import Ticket
@@ -118,4 +118,41 @@ class ExpenseEntry:
 
         return output
 
+    def billable_amount(self):
+        if self.billableOption == 'Billable':
+            return Decimal(self.invoiceAmount)
+        return Decimal(0)
 
+    def reimbursable_amount(self, expense_types=[]):
+        if self.classification['id'] != 2:  # if not reimbursable
+            return Decimal(0)
+        if expense_types:
+            expense_type = [et for et in expense_types if et.id == self.type['id']][0]
+        else:
+            expense_type = ExpenseType.fetch_by_id(self.type['id'])
+        if expense_type.mileageFlag:
+            return Decimal(self.invoiceAmount)  # .quantize(Decimal('.01'), ROUND_DOWN)
+        return self.amount
+
+
+class ExpenseType:
+    def __init__(self, **kwargs):
+        for kwarg in kwargs:
+            setattr(self, kwarg, kwargs[kwarg])
+
+    def __repr__(self):
+        return "<Expense Type {}>".format(self.name)
+
+    @classmethod
+    def fetch_all(cls):
+        return [cls(**expense_type) for expense_type in Connectwise.submit_request('expense/types')]
+
+    @classmethod
+    def fetch_mileage_types(cls):
+        conditions = ['mileageFlag=true']
+        return [cls(**expense_type) for expense_type in Connectwise.submit_request('expense/types', conditions)]
+
+    @classmethod
+    def fetch_by_id(cls, _id):
+        conditions = ['id={}'.format(_id)]
+        return [cls(**expense_type) for expense_type in Connectwise.submit_request('expense/types', conditions)][0]
