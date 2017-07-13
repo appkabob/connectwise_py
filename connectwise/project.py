@@ -67,7 +67,9 @@ class Project:
     def estimated_cost(self):
         return Decimal(self.estimatedTimeCost + self.estimatedExpenseCost + self.estimatedProductCost)
 
-    def estimated_days(self):
+    def estimated_days(self, tickets=[]):
+        if tickets:
+            return Decimal(sum([t.budget_days() for t in tickets]))
         return Decimal(round(self.estimatedHours / 8, 2))
 
     def fetch_tickets(self, tickets=[]):
