@@ -11,7 +11,7 @@ class SystemReport:
         return "<System Report {}>".format(self.name)
 
     @staticmethod
-    def fetch(name, conditions):
+    def fetch(name, conditions=''):
         filters = {
             'page': 1,
             'pageSize': 1000
@@ -37,3 +37,21 @@ class SystemReport:
         if on_or_after: conditions.append('Date_Entered_UTC>=[{}]'.format(on_or_after))
         if before: conditions.append('Date_Entered_UTC<[{}]'.format(before))
         return cls.fetch('ProjectHeader', conditions)
+
+    @classmethod
+    def fetch_invoice_time_by_date_start(cls, on_or_after=None, before=None):
+        conditions = []
+        if on_or_after: conditions.append('Date_Start>=[{}]'.format(on_or_after))
+        if before: conditions.append('Date_Start<[{}]'.format(before))
+        return cls.fetch('InvoiceTime', conditions)
+
+    @classmethod
+    def fetch_timesheets_by_date_start(cls, on_or_after=None, before=None):
+        conditions = []
+        if on_or_after: conditions.append('Date_Start>=[{}]'.format(on_or_after))
+        if before: conditions.append('Date_Start<[{}]'.format(before))
+        return cls.fetch('TimeSheets', conditions)
+
+    @classmethod
+    def fetch_all_time_statuses(cls):
+        return cls.fetch('TimeStatus')
