@@ -12,6 +12,25 @@ class Connectwise:
     def submit_request(cls, endpoint, conditions='', filters=None, verb='GET', child_conditions='', fields=None):
         if verb == 'GET':
             return cls.__cw_submit_get_request(endpoint, conditions, filters, child_conditions, fields)
+        elif verb == 'POST':
+            return cls.__cw_submit_post_request(endpoint, conditions)
+
+    @classmethod
+    def __cw_submit_post_request(cls, endpoint, conditions):
+
+        myconditions = {'conditions': conditions}
+        r = requests.post(
+            'https://{}{}{}'.format(constants.CW_SERVER, constants.CW_QUERY_URL, endpoint),
+            headers=constants.CW_HEADERS,
+            json=myconditions
+        )
+
+        if r.status_code == requests.codes.ok:
+            # print('rjson post', r.json())
+            return r.json()  # json_data.extend(r.json())
+        else:
+            # print('error with {}'.format(endpoint))
+            raise RuntimeError(r.json()['message'])
 
     @classmethod
     def __cw_submit_get_request(cls, endpoint, conditions, filters=None, child_conditions='', fields=None):
@@ -34,8 +53,10 @@ class Connectwise:
         while True:
             # print(r.links['next']['url'])
             if r.status_code == requests.codes.ok:
+                # print('rjson get', r.json())
                 json_data.extend(r.json())
             else:
+                # print('error with {}'.format(endpoint))
                 raise RuntimeError(r.json()['message'])
 
             try:

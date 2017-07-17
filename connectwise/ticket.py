@@ -27,8 +27,8 @@ class Ticket:
 
     @classmethod
     def fetch_by_ids(cls, ids):
-        conditions = 'id={}'.format(' or id='.join(str(x) for x in ids))
-        return [cls(**ticket) for ticket in Connectwise.submit_request('service/tickets', conditions)]
+        conditions = 'id={}'.format(' or id='.join('{}'.format(_id) for _id in ids))
+        return [cls(**ticket) for ticket in Connectwise.submit_request('service/tickets/search', conditions, verb='POST')]
 
     @classmethod
     def fetch_by_project_id(cls, project_id):
@@ -63,6 +63,11 @@ class Ticket:
     @classmethod
     def fetch_by_member_identifier(cls, member_identifier):
         conditions = 'resources contains "{}"'.format(member_identifier)
+        return [cls(**ticket) for ticket in Connectwise.submit_request('service/tickets', conditions)]
+
+    @classmethod
+    def fetch_by_last_updated(cls, on_or_after):
+        conditions = 'lastUpdated>=[{}]'.format(on_or_after)
         return [cls(**ticket) for ticket in Connectwise.submit_request('service/tickets', conditions)]
 
     @classmethod
