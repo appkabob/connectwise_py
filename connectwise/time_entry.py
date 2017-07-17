@@ -93,11 +93,13 @@ class TimeEntry:
     def actual_days(self):
         return round(self.actualHours / 8, 2)
 
+    def daily_rate(self):
+        return Decimal(self.hourlyRate * 8)
+
     def billable_amount(self):
         if self.billableOption != 'Billable':
             return Decimal(0)
         return Decimal(self.hoursBilled * self.hourlyRate)
-
 
     def fetch_estimated_cost(self, members=None):
 
@@ -126,18 +128,33 @@ class TimeEntry:
     def get_charge_to_info(self, tickets=[], activities=[], charge_codes=[], return_type='string'):
         if self.chargeToType == 'Activity':
             if activities:
-                self.activity = [activity for activity in activities if self.chargeToId == activity][0]
+                self.activity = [activity for activity in activities if self.chargeToId == activity.id][0]
+                # if not self.activity:
+                #     self.activity = Activity.fetch_by_id(self.chargeToId)
             else:
+                # print('about to get activity')
                 self.activity = Activity.fetch_by_id(self.chargeToId)
+                # print('just got activity')
+            # print('activity', self.activity)
             output = [self.company['name']]
             output.append('{}'.format(self.activity.opportunity['name']))
             output.append('Activity #{}: {}'.format(self.activity.id, self.activity['name']))
 
         elif self.chargeToType == 'ProjectTicket' or self.chargeToType == 'ServiceTicket':
             if tickets:
-                self.ticket = [ticket for ticket in tickets if self.chargeToId == ticket.id][0]
+                # print('about to check haystack for ticket')
+                self.ticket = [ticket for ticket in tickets if self.chargeToId == ticket.id]
+                if self.ticket:
+                    self.ticket = self.ticket[0]
+                    # print('just found ticket in the haystack')
+                else:
+                    # print('couldnt find ticket in haystack, so getting it separately')
+                    self.ticket = Ticket.fetch_by_id(self.chargeToId)
             else:
+                # print('about to get ticket')
                 self.ticket = Ticket.fetch_by_id(self.chargeToId)
+                # print('just got ticket')
+            # print('ticket', self.ticket)
             output = [self.company['name']]
             if self.ticket.project: output.append(self.ticket.project['name'])
             if self.ticket.phase: output.append(self.ticket.phase['name'])
