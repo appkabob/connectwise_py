@@ -44,7 +44,7 @@ class Connectwise:
         filters_string = cls.__get_filters_string(endpoint, conditions, filters, child_conditions, fields)
         r = requests.get('https://{}{}'.format(constants.CW_SERVER, filters_string), headers=constants.CW_HEADERS)
 
-        if 'system/reports/' in endpoint:
+        if 'system/reports/' in endpoint or 'system/documents/count' == endpoint:
             return json.loads(r.text)
 
         json_data = []
@@ -74,6 +74,9 @@ class Connectwise:
 
     @staticmethod
     def __get_filters_string(endpoint, conditions, filters, child_conditions, fields):
+        if endpoint == 'system/documents/count':
+            return '{}{}?{}'.format(constants.CW_QUERY_URL, endpoint, conditions)
+
         if not isinstance(conditions, str):
             conditions_string = ' and '.join(conditions)
         else:

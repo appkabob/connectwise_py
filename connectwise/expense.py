@@ -1,4 +1,5 @@
 from decimal import Decimal, ROUND_DOWN
+from pprint import pprint
 
 from lib.connectwise_py.connectwise.activity import Activity
 from lib.connectwise_py.connectwise.ticket import Ticket
@@ -74,6 +75,10 @@ class ExpenseEntry:
             conditions.append('date<[{}]'.format(before))
         return [cls(**expense_entry) for expense_entry in
                 Connectwise.submit_request('expense/entries', conditions)]
+
+    def fetch_doc_count(self):
+        conditions = 'recordId={}&recordType=Expense'.format(self.id)
+        return Connectwise.submit_request('system/documents/count', conditions)['count']
 
     def get_ticket(self, tickets=[]):
         if self.chargeToType == 'Activity':
