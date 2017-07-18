@@ -142,7 +142,7 @@ class TimeEntry:
             # print('activity', self.activity)
             output = [self.company['name']]
             if hasattr(self.activity, 'opportunity'): output.append('{}'.format(self.activity.opportunity['name']))
-            output.append('Activity #{}: {}'.format(self.activity.id, self.activity['name']))
+            output.append('Activity #{}: {}'.format(self.activity.id, self.activity.name))
 
         elif self.chargeToType == 'ProjectTicket' or self.chargeToType == 'ServiceTicket':
             if tickets:
