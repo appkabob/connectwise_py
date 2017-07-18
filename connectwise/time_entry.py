@@ -128,7 +128,11 @@ class TimeEntry:
     def get_charge_to_info(self, tickets=[], activities=[], charge_codes=[], return_type='string'):
         if self.chargeToType == 'Activity':
             if activities:
-                self.activity = [activity for activity in activities if self.chargeToId == activity.id][0]
+                self.activity = [activity for activity in activities if self.chargeToId == activity.id]
+                if self.activity:
+                    self.activity = self.activity[0]
+                else:
+                    self.activity = Activity.fetch_by_id(self.chargeToId)
                 # if not self.activity:
                 #     self.activity = Activity.fetch_by_id(self.chargeToId)
             else:
@@ -137,7 +141,7 @@ class TimeEntry:
                 # print('just got activity')
             # print('activity', self.activity)
             output = [self.company['name']]
-            output.append('{}'.format(self.activity.opportunity['name']))
+            if hasattr(self.activity, 'opportunity'): output.append('{}'.format(self.activity.opportunity['name']))
             output.append('Activity #{}: {}'.format(self.activity.id, self.activity['name']))
 
         elif self.chargeToType == 'ProjectTicket' or self.chargeToType == 'ServiceTicket':
