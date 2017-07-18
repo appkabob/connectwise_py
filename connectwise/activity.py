@@ -22,4 +22,11 @@ class Activity:
     @classmethod
     def fetch_by_id(cls, _id):
         conditions = 'id={}'.format(_id)
+        return [cls(**activity) for activity in Connectwise.submit_request('sales/activities', conditions)][0]
+
+    @classmethod
+    def fetch_by_date_range(cls, on_or_after=None, before=None):
+        conditions = []
+        if on_or_after: conditions.append('dateStart>=[{}]'.format(on_or_after))
+        if before: conditions.append('dateStart<[{}]'.format(before))
         return [cls(**activity) for activity in Connectwise.submit_request('sales/activities', conditions)]
