@@ -56,6 +56,17 @@ class ExpenseEntry:
                                      Connectwise.submit_request('expense/entries', conditions)]
 
     @classmethod
+    def fetch_by_business_unit_id(cls, business_unit_id, on_or_after=None, before=None):
+        conditions = ['businessUnitId={}'.format(business_unit_id)]
+        if on_or_after:
+            conditions.append('date>=[{}]'.format(on_or_after))
+        if before:
+            conditions.append('date<[{}]'.format(before))
+
+        return [cls(**expense_entry) for expense_entry in
+                Connectwise.submit_request('expense/entries', conditions)]
+
+    @classmethod
     def fetch_by_member_identifier(cls, member_identifier, on_or_after=None, before=None):
         conditions = ['member/identifier="{}"'.format(member_identifier)]
         if on_or_after:
@@ -94,13 +105,13 @@ class ExpenseEntry:
     #         return self.invoiceAmount
     #     return 0
 
-    def get_charge_to_info(self, tickets=[], activities=[], charge_codes=[], return_type='string'):
+    def get_charge_to_info(self, tickets=[], activities=[], charge_codes=[], return_type='string', include_company=True, bold_first_item=False):
         if self.chargeToType == 'Activity':
             if activities:
                 self.activity = [activity for activity in activities if self.chargeToId == activity][0]
             else:
                 self.activity = Activity.fetch_by_id(self.chargeToId)
-            output = [self.company['name']]
+            output = []
             output.append('{}'.format(self.activity.opportunity['name']))
             output.append('Activity #{}: {}'.format(self.activity.id, self.activity['name']))
 
@@ -109,12 +120,19 @@ class ExpenseEntry:
                 self.ticket = [ticket for ticket in tickets if self.chargeToId == ticket.id][0]
             else:
                 self.ticket = Ticket.fetch_by_id(self.chargeToId)
-            output = [self.company['name']]
+            output = []
             if self.ticket.project: output.append('{}'.format(self.ticket.project['name']))
             if self.ticket.phase: output.append('{}'.format(self.ticket.phase['name']))
             output.append('Ticket #{}: {}'.format(self.ticket.id, self.ticket.summary))
         else:
-            output = [self.company['name'], self.chargeToType, '{}'.format(self.chargeToId)]
+            output = [self.chargeToType, '{}'.format(self.chargeToId)]
+
+        if include_company:
+            output.insert(0, self.company['name'])
+
+        if bold_first_item:
+            first_item = output.pop(0)
+            output.insert(0, '<strong>{}</strong>'.format(first_item))
 
         if return_type == 'string':
             return ' / '.join(output)
