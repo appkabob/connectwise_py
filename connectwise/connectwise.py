@@ -1,7 +1,7 @@
 import json
 import os
 import urllib.parse
-from datetime import date
+from datetime import date, datetime
 
 import requests
 import constants
@@ -95,15 +95,19 @@ class Connectwise:
 
     @staticmethod
     def current_fy():
-        if date.today().month > 6:
-            on_or_after = date(date.today().year, constants.FIRST_DAY_OF_FY['month'], constants.FIRST_DAY_OF_FY['day'])\
-                .strftime('%Y-%m-%d')
-            before = date(date.today().year + 1, constants.FIRST_DAY_OF_FY['month'], constants.FIRST_DAY_OF_FY['day'])\
-                .strftime('%Y-%m-%d')
+        return Connectwise.fy_of_date(date.today().strftime('%Y-%m-%d'))
+
+    @staticmethod
+    def fy_of_date(the_date):
+        print(the_date)
+        the_date = datetime.strptime(the_date, '%Y-%m-%d')
+        print(the_date)
+        print(the_date.month)
+        if the_date.month > 6:
+            on_or_after = date(the_date.year, constants.FIRST_DAY_OF_FY['month'], constants.FIRST_DAY_OF_FY['day']).strftime('%Y-%m-%d')
+            before = date(the_date.year + 1, constants.FIRST_DAY_OF_FY['month'], constants.FIRST_DAY_OF_FY['day']).strftime('%Y-%m-%d')
         else:
-            on_or_after = date(date.today().year - 1, constants.FIRST_DAY_OF_FY['month'], constants.FIRST_DAY_OF_FY['day'])\
-                .strftime('%Y-%m-%d')
-            before = date(date.today().year, constants.FIRST_DAY_OF_FY['month'], constants.FIRST_DAY_OF_FY['day'])\
-                .strftime('%Y-%m-%d')
+            on_or_after = date(the_date.year - 1, constants.FIRST_DAY_OF_FY['month'], constants.FIRST_DAY_OF_FY['day']).strftime('%Y-%m-%d')
+            before = date(the_date.year, constants.FIRST_DAY_OF_FY['month'], constants.FIRST_DAY_OF_FY['day']).strftime('%Y-%m-%d')
 
         return on_or_after, before
