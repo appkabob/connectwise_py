@@ -49,6 +49,7 @@ class Contact:
         return phone
 
     def get_email(self, i=0):
-        return [communicationItem['value']
+        emails = [communicationItem['value']
                 for communicationItem in self.communicationItems
-                if communicationItem['communicationType'] == 'Email'][i]
+                if communicationItem['communicationType'] == 'Email']
+        return emails[i] if emails else None
