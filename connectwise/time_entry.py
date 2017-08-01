@@ -114,10 +114,18 @@ class TimeEntry:
             except IndexError:
                 return 0
 
-        # if member.identifier == 'JEngel':
-        #     member
-
         self.estHourlyCost = Decimal(member.hourly_cost(self.timeStart[:10]))
+
+        if member.identifier.lower() == 'ktooredman' or member.identifier.lower() == 'psoldwedel':
+            if self.billableOption == 'Billable':
+                self.estHourlyCost = Decimal(150)
+            else:
+                self.estHourlyCost = Decimal(125)
+        elif member.identifier.lower() == 'mvanclay':
+            if self.billableOption == 'Billable':
+                self.estHourlyCost = Decimal(137.5)
+            else:
+                self.estHourlyCost = Decimal(125)
 
         if self.workType['name'] == 'Professional Development':
             self.estHourlyCost = round(self.estHourlyCost / 2, 2)
