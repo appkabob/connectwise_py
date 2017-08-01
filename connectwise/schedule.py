@@ -110,3 +110,44 @@ class ScheduleEntry:
 
     def days(self):
         return Decimal(round(self.hours / 8, 2))
+
+    def get_charge_to_info(self, tickets=[], activities=[], charge_codes=[], return_type='string', include_company=True, include_project=True, bold_first_item=False):
+        output = []
+        company_name = ''
+
+        if tickets:
+            self.ticket = [ticket for ticket in tickets if self.objectId == ticket.id][0]
+        else:
+            self.ticket = Ticket.fetch_by_id(self.objectId)
+        if self.ticket:
+            company_name = self.ticket.company['name']
+            if self.ticket.project and include_project: output.append('{}'.format(self.ticket.project['name']))
+            if self.ticket.phase: output.append('{}'.format(self.ticket.phase['name']))
+            output.append('Ticket #{}: {}'.format(self.ticket.id, self.ticket.summary))
+        else:
+            if activities:
+                self.activity = [activity for activity in activities if self.objectId == activity.id][0]
+            else:
+                self.activity = Activity.fetch_by_id(self.objectId)
+            if self.activity:
+                company_name = self.activity.company['name']
+                output.append('{}'.format(self.activity.opportunity['name']))
+                output.append('Activity #{}: {}'.format(self.activity.id, self.activity['name']))
+
+
+        # else:
+        #     output = [self.chargeToType, '{}'.format(self.chargeToId)]
+
+        if include_company:
+            output.insert(0, company_name)
+
+        if bold_first_item:
+            first_item = output.pop(0)
+            output.insert(0, '<strong>{}</strong>'.format(first_item))
+
+        if return_type == 'string':
+            return ' / '.join(output)
+        elif return_type == 'list':
+            return output
+
+        return output
