@@ -113,7 +113,7 @@ class Company:
                         'time_entries': this_days_time_entries
                     })
             oldest_date += timedelta(days=1)
-        print(schedule_and_time)
+        # print(schedule_and_time)
         return schedule_and_time
 
     def fetch_invoices(self, invoices=None, on_or_after=None, before=None):

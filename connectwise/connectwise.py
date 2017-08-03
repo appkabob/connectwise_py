@@ -99,10 +99,10 @@ class Connectwise:
 
     @staticmethod
     def fy_of_date(the_date):
-        print(the_date)
+        # print(the_date)
         the_date = datetime.strptime(the_date, '%Y-%m-%d')
-        print(the_date)
-        print(the_date.month)
+        # print(the_date)
+        # print(the_date.month)
         if the_date.month > 6:
             on_or_after = date(the_date.year, constants.FIRST_DAY_OF_FY['month'], constants.FIRST_DAY_OF_FY['day']).strftime('%Y-%m-%d')
             before = date(the_date.year + 1, constants.FIRST_DAY_OF_FY['month'], constants.FIRST_DAY_OF_FY['day']).strftime('%Y-%m-%d')
