@@ -4,6 +4,8 @@ import urllib.parse
 from datetime import date, datetime
 
 import requests
+from dateutil.relativedelta import relativedelta
+
 import constants
 
 class Connectwise:
@@ -111,3 +113,20 @@ class Connectwise:
             before = date(the_date.year, constants.FIRST_DAY_OF_FY['month'], constants.FIRST_DAY_OF_FY['day']).strftime('%Y-%m-%d')
 
         return on_or_after, before
+
+    @staticmethod
+    def fy_start_dates(of_date=None):
+        if of_date:
+            first_day_this_fy, first_day_next_fy = Connectwise.fy_of_date(of_date)
+        else:
+            first_day_this_fy, first_day_next_fy = Connectwise.current_fy()
+        first_day_3_fy_ago = (datetime.strptime(first_day_this_fy, '%Y-%m-%d') - relativedelta(years=3)).strftime(
+            '%Y-%m-%d')
+        first_day_2_fy_ago = (
+            datetime.strptime(first_day_this_fy, '%Y-%m-%d') - relativedelta(years=2)).strftime(
+            '%Y-%m-%d')
+        first_day_last_fy = (
+            datetime.strptime(first_day_this_fy, '%Y-%m-%d') - relativedelta(years=1)).strftime(
+            '%Y-%m-%d')
+
+        return [first_day_next_fy, first_day_this_fy, first_day_last_fy, first_day_2_fy_ago, first_day_3_fy_ago]
