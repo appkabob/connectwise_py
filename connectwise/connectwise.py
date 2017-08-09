@@ -19,15 +19,16 @@ class Connectwise:
 
     @classmethod
     def __cw_submit_post_request(cls, endpoint, conditions):
+        if 'search' in endpoint:
+            conditions = {'conditions': conditions}
 
-        myconditions = {'conditions': conditions}
         r = requests.post(
             'https://{}{}{}'.format(constants.CW_SERVER, constants.CW_QUERY_URL, endpoint),
             headers=constants.CW_HEADERS,
-            json=myconditions
+            json=conditions
         )
 
-        if r.status_code == requests.codes.ok:
+        if r.status_code == requests.codes.ok or r.ok == True or r.status_code == 201:
             # print('rjson post', r.json())
             return r.json()  # json_data.extend(r.json())
         else:
