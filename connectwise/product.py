@@ -15,7 +15,22 @@ class Product:
             setattr(self, kwarg, kwargs[kwarg])
 
     def __repr__(self):
-        return "<Product {}>".format(self.description)
+        return "<Product {} {}>".format(self.id, self.description)
+
+    @classmethod
+    def create(cls, catalog_item_id, charge_to_id, charge_to_type, billable_option, description=None, internal_notes=None):
+        conditions = {
+            'catalogItem': {
+                'id': catalog_item_id
+            },
+            'chargeToId': charge_to_id,
+            'chargeToType': charge_to_type,
+            'billableOption': billable_option
+        }
+        if description: conditions['description'] = description
+        if internal_notes: conditions['internalNotes'] = internal_notes
+        product = Connectwise.submit_request('procurement/products', conditions, verb='POST')
+        return cls(**product)
 
     @classmethod
     def fetch_all(cls):
@@ -32,6 +47,12 @@ class Product:
         return [cls(**product) for product in Connectwise.submit_request('procurement/products', conditions)]
 
     @classmethod
+    def fetch_by_catalog_item_identifier(cls, catalog_item_identifier, identifier_operator='=', charge_to_type=None):
+        conditions = ['catalogItem/identifier {} "{}"'.format(identifier_operator, catalog_item_identifier)]
+        if charge_to_type: conditions.append('chargeToType="{}"'.format(charge_to_type))
+        return [cls(**product) for product in Connectwise.submit_request('procurement/products', conditions)]
+
+    @classmethod
     def fetch_by_catalog_item_id(cls, catalog_item_id):
         conditions = ['catalogItem/id={}'.format(catalog_item_id)]
         return [cls(**product) for product in Connectwise.submit_request('procurement/products', conditions)]
@@ -39,6 +60,14 @@ class Product:
     @classmethod
     def fetch_by_subcategory_id(cls, subcategory_id):
         catalog_product_ids = [cp.id for cp in CatalogProduct.fetch_by_subcategory_id(subcategory_id)]
+        products = []
+        for catalog_product_id in catalog_product_ids:
+            products.extend(cls.fetch_by_catalog_item_id(catalog_product_id))
+        return products
+
+    @classmethod
+    def fetch_by_category_name(cls, category_name, operator='='):
+        catalog_product_ids = [cp.id for cp in CatalogProduct.fetch_by_category_name(category_name, operator)]
         products = []
         for catalog_product_id in catalog_product_ids:
             products.extend(cls.fetch_by_catalog_item_id(catalog_product_id))
@@ -111,5 +140,11 @@ class CatalogProduct:
     @classmethod
     def fetch_by_subcategory_id(cls, subcategory_id):
         conditions = ['subcategory/id={}'.format(subcategory_id)]
+        return [cls(**catalog_product) for catalog_product in
+                Connectwise.submit_request('procurement/catalog', conditions)]
+
+    @classmethod
+    def fetch_by_category_name(cls, category_name, operator='='):
+        conditions = ['category/name {} "{}"'.format(operator, category_name)]
         return [cls(**catalog_product) for catalog_product in
                 Connectwise.submit_request('procurement/catalog', conditions)]
