@@ -12,6 +12,7 @@ class Connectwise:
 
     @classmethod
     def submit_request(cls, endpoint, conditions='', filters=None, verb='GET', child_conditions='', fields=None):
+        if conditions and ('search' in endpoint or verb != 'POST'): conditions = cls.conditions_to_str(conditions)
         if verb == 'GET':
             return cls.__cw_submit_get_request(endpoint, conditions, filters, child_conditions, fields)
         elif verb == 'POST':
@@ -33,7 +34,7 @@ class Connectwise:
             return r.json()  # json_data.extend(r.json())
         else:
             # print('error with {}'.format(endpoint))
-            raise RuntimeError(r.json()['message'])
+            raise RuntimeError('\n{}\n{}\n{}\n{}'.format('{} {}'.format(r.status_code, r.reason), r.url, conditions, r.json()['message'] if hasattr(r, 'json()') else ''))
 
     @classmethod
     def __cw_submit_get_request(cls, endpoint, conditions, filters=None, child_conditions='', fields=None):
@@ -80,13 +81,8 @@ class Connectwise:
         if endpoint == 'system/documents/count':
             return '{}{}?{}'.format(constants.CW_QUERY_URL, endpoint, conditions)
 
-        if not isinstance(conditions, str):
-            conditions_string = ' and '.join(conditions)
-        else:
-            conditions_string = conditions
-
         filters_string = '{}{}?conditions={}'.format(constants.CW_QUERY_URL, endpoint,
-                                                     urllib.parse.quote_plus(conditions_string))
+                                                     urllib.parse.quote_plus(conditions))
         filters_string += '&page={}&pageSize={}'.format(filters['page'], filters['pageSize'])
         filters_string += '&childconditions={}'.format(child_conditions)
         if fields: filters_string += '&fields={}'.format(fields)
@@ -95,6 +91,14 @@ class Connectwise:
             filters_string += '&orderBy={}'.format(urllib.parse.quote_plus(filters['orderBy']))
 
         return filters_string
+
+    @staticmethod
+    def conditions_to_str(conditions):
+        if not isinstance(conditions, str):
+            conditions_string = ' and '.join(conditions)
+        else:
+            conditions_string = conditions
+        return conditions_string
 
     @staticmethod
     def current_fy():
@@ -131,3 +135,12 @@ class Connectwise:
             '%Y-%m-%d')
 
         return [first_day_next_fy, first_day_this_fy, first_day_last_fy, first_day_2_fy_ago, first_day_3_fy_ago]
+
+    @staticmethod
+    def get_custom_field_value(object, key):
+        if hasattr(object, 'customFields'):
+            field = [field for field in object.customFields if field['caption'] == key]
+            if field: field = field[0]
+            if 'value' in field and field['value']:
+                return field['value']
+        return None
