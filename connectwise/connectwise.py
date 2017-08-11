@@ -34,7 +34,7 @@ class Connectwise:
             return r.json()  # json_data.extend(r.json())
         else:
             # print('error with {}'.format(endpoint))
-            raise RuntimeError('\n{}\n{}\n{}\n{}'.format('{} {}'.format(r.status_code, r.reason), r.url, conditions, r.json()['message'] if hasattr(r, 'json()') else ''))
+            raise RuntimeError('\n{}\n{}\n{}\n{}'.format('{} {}'.format(r.status_code, r.reason), r.url, conditions, r.json()['message'] if hasattr(r, 'json') else ''))
 
     @classmethod
     def __cw_submit_get_request(cls, endpoint, conditions, filters=None, child_conditions='', fields=None):
@@ -56,12 +56,14 @@ class Connectwise:
 
         while True:
             # print(r.links['next']['url'])
-            if r.status_code == requests.codes.ok:
+            if r.status_code == requests.codes.ok or r.ok == True or r.status_code == 201:
                 # print('rjson get', r.json())
                 json_data.extend(r.json())
             else:
                 # print('error with {}'.format(endpoint))
-                raise RuntimeError(r.json()['message'])
+                # raise RuntimeError(r.json()['message'])
+                raise RuntimeError('\n{}\n{}\n{}\n{}'.format('{} {}'.format(r.status_code, r.reason), r.url, conditions,
+                                                             r.json()['message'] if hasattr(r, 'json') else ''))
 
             try:
                 r.links['next']['url']
