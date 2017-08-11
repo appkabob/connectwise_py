@@ -3,7 +3,7 @@ import math
 from decimal import Decimal
 
 import constants
-from lib.connectwise_py.connectwise.ticket import Ticket
+from .ticket import Ticket
 from .system_report import SystemReport
 from .connectwise import Connectwise
 
