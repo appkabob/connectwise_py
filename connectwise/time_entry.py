@@ -121,22 +121,19 @@ class TimeEntry:
 
         self.estHourlyCost = Decimal(member.hourly_cost(self.timeStart[:10]))
 
-        if member.identifier.lower() == 'ktooredman' or member.identifier.lower() == 'psoldwedel':
-            if self.billableOption == 'Billable':
-                self.estHourlyCost = Decimal(150)
-            else:
-                self.estHourlyCost = Decimal(125)
-        elif member.identifier.lower() == 'mvanclay':
-            if self.billableOption == 'Billable':
-                self.estHourlyCost = Decimal(137.5)
-            else:
-                self.estHourlyCost = Decimal(125)
+        self.override_specific_member_hourly_cost(member)
 
         if self.workType['name'] == 'Professional Development':
             self.estHourlyCost = round(self.estHourlyCost / 2, 2)
 
         self.estCost = round(self.estHourlyCost * self.actualHours, 2)
         return self.estCost
+
+    def override_specific_member_hourly_cost(self, member):
+        # override this method in a child class in your own project if you need to override self.estHourlyCost
+        # for certain Members under specific custom business logic, such as whether or not the Time Entry is
+        # Billable and/or occurred during a specific time period
+        pass
 
     def get_charge_to_info(self, tickets=[], activities=[], charge_codes=[], return_type='string'):
         if self.chargeToType == 'Activity':
