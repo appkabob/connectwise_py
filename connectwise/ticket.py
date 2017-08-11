@@ -1,8 +1,6 @@
 from decimal import Decimal
 
 from .connectwise import Connectwise
-# from lib.connectwise_py.connectwise.schedule import ScheduleEntry
-# from lib.connectwise_py.connectwise.time_entry import TimeEntry
 
 
 class Ticket:
@@ -87,29 +85,40 @@ class Ticket:
     def expense_cost(self):
         return '${}'.format(sum([expense.amount for expense in self.expense_entries]))
 
+    def fetch_time_entries(self):
+        from .time_entry import TimeEntry
+        self.time_entries = TimeEntry.fetch_by_charge_to_id(self.id)
+        return self.time_entries
+
     def actual_hours(self, time_entries=[]):
-        # if not time_entries:
-        #     self.time_entries = TimeEntry.fetch_by_charge_to_ids([self.id])
-        # else:
-        self.time_entries = [t for t in time_entries if t.chargeToId == self.id]
+        if time_entries:
+            self.time_entries = [t for t in time_entries if t.chargeToId == self.id]
+        elif not self.time_entries:
+            self.fetch_time_entries()
         return sum([time_entry.actualHours for time_entry in self.time_entries])
+
+    def actual_days(self, time_entries=[]):
+        return round(self.actual_hours(time_entries) / 8, 2)
 
     def budget_days(self):
         hours = self.budgetHours if hasattr(self, 'budgetHours') and self.budgetHours else 0
         return Decimal(round(hours / 8, 2))
 
-    def actual_days(self):
-        return round(self.actual_hours() / 8, 2)
+    def fetch_schedule_entries(self):
+        from .schedule import ScheduleEntry
+        self.schedule_entries = ScheduleEntry.fetch_by_object_id(self.id)
+        return self.schedule_entries
 
     def schedule_hours(self, schedule_entries=[]):
-        # if not schedule_entries:
-        #     self.schedule_entries = ScheduleEntry.fetch_by_object_id(self.id)
-        # else:
-        self.schedule_entries = [s for s in schedule_entries if s.objectId == self.id]
+        if schedule_entries:
+            self.schedule_entries = [s for s in schedule_entries if s.objectId == self.id]
+        elif not self.schedule_entries:
+            self.fetch_schedule_entries()
+
         return sum([schedule_entry.hours for schedule_entry in self.schedule_entries])
 
-    def schedule_days(self):
-        return round(self.schedule_hours() / 8, 2)
+    def schedule_days(self, schedule_entries=[]):
+        return round(self.schedule_hours(schedule_entries) / 8, 2)
 
     def est_nbr_consultants(self):
         for field in self.customFields:
