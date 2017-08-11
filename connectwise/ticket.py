@@ -11,6 +11,8 @@ class Ticket:
         self.time_entries = []
         self.expense_entries = []
         self.notes = []
+        self.project = None
+        self.phase = None
         for kwarg in kwargs:
             setattr(self, kwarg, kwargs[kwarg])
 

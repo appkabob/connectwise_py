@@ -12,6 +12,7 @@ class TimeEntry:
         self.chargeToType = chargeToType
         self.estHourlyCost = 0
         self.estCost = 0
+        self.invoice = None
         for kwarg in kwargs:
             setattr(self, kwarg, kwargs[kwarg])
         self.actualHours = Decimal(kwargs['actualHours'])
@@ -83,7 +84,7 @@ class TimeEntry:
         return [cls(**time_entry) for time_entry in
                 Connectwise.submit_request('time/entries', conditions)]
 
-    def service_location(self, schedule_entries=[], tickets=[]):
+    def service_location(self, schedule_entries=[], tickets=[], activities=[]):
         if Connectwise.get_custom_field_value(self, 'Where'): return Connectwise.get_custom_field_value(self, 'Where')
         schedule_entry = [s.where['name'] for s in schedule_entries
                           if s.dateStart[:10] == self.timeStart[:10]
@@ -92,6 +93,9 @@ class TimeEntry:
 
         ticket = [t.serviceLocation['name'] for t in tickets if t.id == self.chargeToId]
         if ticket: return ticket[0]
+
+        activity = [a.where for a in activities if a.id == self.chargeToId]
+        if activity: return activity[0]
 
         return 'On-Site'
 
