@@ -66,29 +66,34 @@ class TimeEntry:
                 Connectwise.submit_request('time/entries', conditions)]
 
     @classmethod
+    def fetch_by_charge_to_id(cls, charge_to_id, charge_to_type=None):
+        conditions = ['chargeToId={}'.format(charge_to_id)]
+        if charge_to_type: conditions.append('chargeToType="{}"'.format(charge_to_type))
+        return [cls(**time_entry) for time_entry in
+                Connectwise.submit_request('time/entries', conditions)]
+
+    @classmethod
     def fetch_by_charge_to_ids(cls, charge_to_ids, on_or_after=None, before=None):
+        if len(charge_to_ids) > 10:
+            raise IOError('Cannot lookup more than 10 chargeToIds at once')
+        conditions = ['({})'.format(
+            'chargeToId={}'.format(' or chargeToId='.join('{}'.format(_id) for _id in charge_to_ids)))]
+        if on_or_after: conditions.append('timeStart>=[{}]'.format(on_or_after))
+        if before: conditions.append('timeStart<[{}]'.format(before))
+        return [cls(**time_entry) for time_entry in
+                Connectwise.submit_request('time/entries', conditions)]
 
-        time_entries = []
-        conditions_start = []
-        if on_or_after:
-            conditions_start.append('timeStart>=[{}]'.format(on_or_after))
-        if before:
-            conditions_start.append('timeStart<[{}]'.format(before))
+    def service_location(self, schedule_entries=[], tickets=[]):
+        if Connectwise.get_custom_field_value(self, 'Where'): return Connectwise.get_custom_field_value(self, 'Where')
+        schedule_entry = [s.where['name'] for s in schedule_entries
+                          if s.dateStart[:10] == self.timeStart[:10]
+                          and s.objectId == self.chargeToId]
+        if schedule_entry: return schedule_entry[0]
 
-        if conditions_start:
-            conditions_start = ' and '.join(conditions_start) + ' and '
-        else:
-            conditions_start = ''
+        ticket = [t.serviceLocation['name'] for t in tickets if t.id == self.chargeToId]
+        if ticket: return ticket[0]
 
-        conditions = []
-        for i, charge_to_id in enumerate(charge_to_ids):
-            conditions.append('chargeToId={}'.format(charge_to_id))
-            if i > 0 and i % 50 == 0:  # fetch time entries for 100 tickets at a time; any more and the query becomes too long
-                conditions = conditions_start + '(' + ' or '.join(conditions) + ')'
-                time_entries.extend([cls(**schedule_entry) for schedule_entry in
-                                     Connectwise.submit_request('time/entries', conditions)])
-                conditions = []
-        return time_entries
+        return 'On-Site'
 
     def actual_days(self):
         return round(self.actualHours / 8, 2)
