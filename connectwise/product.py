@@ -15,7 +15,7 @@ class Product:
             setattr(self, kwarg, kwargs[kwarg])
 
     def __repr__(self):
-        return "<Product {} {}>".format(self.id, self.description)
+        return "<Product {} {} Qty {}>".format(self.id, self.description, self.quantity)
 
     @classmethod
     def create(cls, catalog_item_id, charge_to_id, charge_to_type, billable_option, description=None, internal_notes=None):
