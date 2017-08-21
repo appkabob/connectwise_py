@@ -108,7 +108,7 @@ class ExpenseEntry:
     def get_charge_to_info(self, tickets=[], activities=[], charge_codes=[], return_type='string', include_company=True, bold_first_item=False):
         if self.chargeToType == 'Activity':
             if activities:
-                self.activity = [activity for activity in activities if self.chargeToId == activity][0]
+                self.activity = [activity for activity in activities if self.chargeToId == activity.id][0]
             else:
                 self.activity = Activity.fetch_by_id(self.chargeToId)
             output = []
