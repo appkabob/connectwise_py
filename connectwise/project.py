@@ -32,6 +32,11 @@ class Project:
         return [cls(**project) for project in Connectwise.submit_request('project/projects', conditions)][0]
 
     @classmethod
+    def fetch_by_business_unit_id(cls, business_unit_id):
+        conditions = ['businessUnitId={}'.format(business_unit_id)]
+        return [cls(**project) for project in Connectwise.submit_request('project/projects', conditions)]
+
+    @classmethod
     def fetch_by_id_range(cls, low_id=None, high_id=None):
         conditions = []
         if low_id: conditions.append('id>={}'.format(low_id))
