@@ -1,3 +1,4 @@
+from datetime import datetime
 from decimal import Decimal
 
 from lib.connectwise_py.connectwise.activity import Activity
@@ -13,6 +14,7 @@ class TimeEntry:
         self.estHourlyCost = 0
         self.estCost = 0
         self.invoice = None
+        self.notes = None
         for kwarg in kwargs:
             setattr(self, kwarg, kwargs[kwarg])
         self.actualHours = Decimal(kwargs['actualHours'])
@@ -58,6 +60,17 @@ class TimeEntry:
     @classmethod
     def fetch_by_company_id(cls, company_id, on_or_after=None, before=None):
         conditions = ['company/id={}'.format(company_id)]
+        if on_or_after:
+            conditions.append('timeStart>=[{}]'.format(on_or_after))
+        if before:
+            conditions.append('timeStart<[{}]'.format(before))
+
+        return [cls(**time_entry) for time_entry in
+                Connectwise.submit_request('time/entries', conditions)]
+
+    @classmethod
+    def fetch_by_business_unit_id(cls, business_unit_id, on_or_after=None, before=None):
+        conditions = ['businessUnitId={}'.format(business_unit_id)]
         if on_or_after:
             conditions.append('timeStart>=[{}]'.format(on_or_after))
         if before:
@@ -139,7 +152,23 @@ class TimeEntry:
         # Billable and/or occurred during a specific time period
         pass
 
-    def get_charge_to_info(self, tickets=[], activities=[], charge_codes=[], return_type='string'):
+    def get_schedule_entry(self, schedule_entries):
+        schedule = [s for s in schedule_entries if
+                    s.objectId == self.chargeToId and
+                    s.member['identifier'] == self.member['identifier'] and
+                    s.dateStart <= self.timeStart and s.dateEnd >= self.timeEnd]
+        if schedule: return schedule[0]
+
+    def get_schedule_duration_per_day(self, schedule_entries):
+        schedule_entry = self.get_schedule_entry(schedule_entries)
+        if schedule_entry:
+            return schedule_entry.days() / schedule_entry.calendar_days()
+        return 0
+
+
+    def get_charge_to_info(self, tickets=[], activities=[], charge_codes=[], return_type='string', include_company=True, include_project_name=True, bold_first_item=False):
+        """Returns a str or list of objects. Optionally in a list of Tickets and/or Activities to prevent
+        it from re-querying CW. return_type must be 'list' or 'string'"""
         if self.chargeToType == 'Activity':
             if activities:
                 self.activity = [activity for activity in activities if self.chargeToId == activity.id]
@@ -147,38 +176,35 @@ class TimeEntry:
                     self.activity = self.activity[0]
                 else:
                     self.activity = Activity.fetch_by_id(self.chargeToId)
-                # if not self.activity:
-                #     self.activity = Activity.fetch_by_id(self.chargeToId)
             else:
-                # print('about to get activity')
                 self.activity = Activity.fetch_by_id(self.chargeToId)
-                # print('just got activity')
-            # print('activity', self.activity)
-            output = [self.company['name']]
+
+            output = []
             if hasattr(self.activity, 'opportunity'): output.append('{}'.format(self.activity.opportunity['name']))
-            output.append('Activity #{}: {}'.format(self.activity.id, self.activity.name))
+            output.append('Activity #{}: {}'.format(self.activity.id, self.activity['name']))
 
         elif self.chargeToType == 'ProjectTicket' or self.chargeToType == 'ServiceTicket':
             if tickets:
-                # print('about to check haystack for ticket')
                 self.ticket = [ticket for ticket in tickets if self.chargeToId == ticket.id]
                 if self.ticket:
                     self.ticket = self.ticket[0]
-                    # print('just found ticket in the haystack')
                 else:
-                    # print('couldnt find ticket in haystack, so getting it separately')
                     self.ticket = Ticket.fetch_by_id(self.chargeToId)
             else:
-                # print('about to get ticket')
                 self.ticket = Ticket.fetch_by_id(self.chargeToId)
-                # print('just got ticket')
-            # print('ticket', self.ticket)
-            output = [self.company['name']]
-            if self.ticket.project: output.append(self.ticket.project['name'])
-            if self.ticket.phase: output.append(self.ticket.phase['name'])
+            output = []
+            if include_project_name and self.ticket.project: output.append('{}'.format(self.ticket.project['name']))
+            if self.ticket.phase: output.append('{}'.format(self.ticket.phase['name']))
             output.append('Ticket #{}: {}'.format(self.ticket.id, self.ticket.summary))
         else:
-            output = [self.company['name'], self.chargeToType, '{}'.format(self.chargeToId)]
+            output = [self.chargeToType, '{}'.format(self.chargeToId)]
+
+        if include_company:
+            output.insert(0, self.company['name'])
+
+        if bold_first_item:
+            first_item = output.pop(0)
+            output.insert(0, '<strong>{}</strong>'.format(first_item))
 
         if return_type == 'string':
             return ' / '.join(output)
