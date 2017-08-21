@@ -10,6 +10,7 @@ class ExpenseEntry:
     def __init__(self, id, chargeToId, amount, **kwargs):
         self.id = id
         self.chargeToId = chargeToId
+        self.notes = None
         if not amount:
             amount = 0
         self.amount = round(Decimal(amount), 2)
