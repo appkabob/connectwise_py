@@ -1,9 +1,11 @@
 from decimal import Decimal
 
+from dateutil.relativedelta import relativedelta
+
 from lib.connectwise_py.connectwise.activity import Activity
 from lib.connectwise_py.connectwise.ticket import Ticket
 from lib.connectwise_py.connectwise.connectwise import Connectwise
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 
 
 class ScheduleEntry:
@@ -22,6 +24,14 @@ class ScheduleEntry:
 
     @classmethod
     def fetch_by_object_ids(cls, object_ids, on_or_after=None, before=None):
+        # i = 1
+        # schedule_entries = []
+        # print(ticket_ids)
+        # while i < len(ticket_ids):
+        #     print(ticket_ids[i-1:10])
+        #     schedule_entries.extend(CWSchedule.fetch_by_object_ids(ticket_ids[i-1:10], on_or_after, before))
+        #     i += 10
+        # self.schedule_entries = schedule_entries
         if len(object_ids) > 10:
             raise IOError('Cannot lookup more than 10 chargeToIds at once')
         conditions = ['({})'.format(
@@ -96,6 +106,22 @@ class ScheduleEntry:
 
     def days(self):
         return Decimal(round(self.hours / 8, 2))
+
+    def each_calendar_date(self):
+        start_date = datetime.strptime(self.dateStart[:10], '%Y-%m-%d')
+        dates = []
+        while start_date.strftime('%Y-%m-%d') <= self.dateEnd[:10]:
+            dates.append(start_date.strftime('%Y-%m-%d'))
+            start_date += relativedelta(days=1)
+        return dates
+
+    def calendar_days(self):
+        return (datetime.strptime(self.dateEnd[:10], '%Y-%m-%d') - datetime.strptime(
+            self.dateStart[:10], '%Y-%m-%d')).days + 1
+
+    def duration_per_calendar_day(self):
+        return self.days() / self.calendar_days()
+
 
     def get_charge_to_info(self, tickets=[], activities=[], charge_codes=[], return_type='string', include_company=True, include_project=True, bold_first_item=False):
         output = []
