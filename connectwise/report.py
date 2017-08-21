@@ -1,6 +1,7 @@
 from datetime import date, datetime, timezone
 from operator import attrgetter
 
+from dateutil.relativedelta import relativedelta
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_JUSTIFY
 from reportlab.lib.pagesizes import letter
@@ -37,6 +38,12 @@ class Report:
 
     def _generate_report_content(self):
         pass  # either modify this or create a subclass for each report type and override this method there
+
+    def format_month(self, on_or_after, before):
+        on_or_after = datetime.strptime(on_or_after, '%Y-%m-%d')
+        if on_or_after.day == 1 and (on_or_after + relativedelta(months=1)).strftime('%Y-%m-%d') == before:
+            return on_or_after.strftime('%B %Y')
+        return None
 
     def save_pdf(self):
         doc = SimpleDocTemplate(
