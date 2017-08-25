@@ -4,6 +4,7 @@ import constants
 class Contact:
     def __init__(self, **kwargs):
         # self.id = _id
+        self.title = None
         for kwarg in kwargs:
             setattr(self, kwarg, kwargs[kwarg])
 
