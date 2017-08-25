@@ -7,9 +7,9 @@ from .connectwise import Connectwise
 
 
 class ExpenseEntry:
-    def __init__(self, id, chargeToId, amount, **kwargs):
-        self.id = id
-        self.chargeToId = chargeToId
+    def __init__(self, amount, **kwargs):
+        self.chargeToId = None
+        self.chargeToType = None
         self.notes = None
         if not amount:
             amount = 0
@@ -114,19 +114,23 @@ class ExpenseEntry:
                 self.activity = Activity.fetch_by_id(self.chargeToId)
             output = []
             output.append('{}'.format(self.activity.opportunity['name']))
-            output.append('Activity #{}: {}'.format(self.activity.id, self.activity['name']))
+            output.append('Activity #{}: {}'.format(self.activity.id, self.activity.name))
 
         elif self.chargeToType == 'ProjectTicket' or self.chargeToType == 'ServiceTicket':
             if tickets:
-                self.ticket = [ticket for ticket in tickets if self.chargeToId == ticket.id][0]
+                self.ticket = [ticket for ticket in tickets if self.chargeToId == ticket.id]
+                if len(self.ticket) > 0: self.ticket = self.ticket[0]
+                else: self.ticket = Ticket.fetch_by_id(self.chargeToId)
             else:
                 self.ticket = Ticket.fetch_by_id(self.chargeToId)
             output = []
             if self.ticket.project: output.append('{}'.format(self.ticket.project['name']))
             if self.ticket.phase: output.append('{}'.format(self.ticket.phase['name']))
             output.append('Ticket #{}: {}'.format(self.ticket.id, self.ticket.summary))
-        else:
+        elif self.chargeToType:
             output = [self.chargeToType, '{}'.format(self.chargeToId)]
+        else:
+            output = [self.type['name']]
 
         if include_company:
             output.insert(0, self.company['name'])
