@@ -165,50 +165,9 @@ class TimeEntry:
             return schedule_entry.days() / schedule_entry.calendar_days()
         return 0
 
-
-    def get_charge_to_info(self, tickets=[], activities=[], charge_codes=[], return_type='string', include_company=True, include_project_name=True, bold_first_item=False):
-        """Returns a str or list of objects. Optionally in a list of Tickets and/or Activities to prevent
-        it from re-querying CW. return_type must be 'list' or 'string'"""
-        if self.chargeToType == 'Activity':
-            if activities:
-                self.activity = [activity for activity in activities if self.chargeToId == activity.id]
-                if self.activity:
-                    self.activity = self.activity[0]
-                else:
-                    self.activity = Activity.fetch_by_id(self.chargeToId)
-            else:
-                self.activity = Activity.fetch_by_id(self.chargeToId)
-
-            output = []
-            if hasattr(self.activity, 'opportunity'): output.append('{}'.format(self.activity.opportunity['name']))
-            output.append('Activity #{}: {}'.format(self.activity.id, self.activity['name']))
-
-        elif self.chargeToType == 'ProjectTicket' or self.chargeToType == 'ServiceTicket':
-            if tickets:
-                self.ticket = [ticket for ticket in tickets if self.chargeToId == ticket.id]
-                if self.ticket:
-                    self.ticket = self.ticket[0]
-                else:
-                    self.ticket = Ticket.fetch_by_id(self.chargeToId)
-            else:
-                self.ticket = Ticket.fetch_by_id(self.chargeToId)
-            output = []
-            if include_project_name and self.ticket.project: output.append('{}'.format(self.ticket.project['name']))
-            if self.ticket.phase: output.append('{}'.format(self.ticket.phase['name']))
-            output.append('Ticket #{}: {}'.format(self.ticket.id, self.ticket.summary))
-        else:
-            output = [self.chargeToType, '{}'.format(self.chargeToId)]
-
-        if include_company:
-            output.insert(0, self.company['name'])
-
-        if bold_first_item:
-            first_item = output.pop(0)
-            output.insert(0, '<strong>{}</strong>'.format(first_item))
-
-        if return_type == 'string':
-            return ' / '.join(output)
-        elif return_type == 'list':
-            return output
-
-        return output
+    def get_charge_to_info(self, tickets=[], activities=[], charge_codes=[], return_type='string', include_company=True,
+                           include_project_name=True, bold_first_item=False):
+        """Optionally include a list of pre-fetched Tickets and/or Activities to prevent it from re-querying CW.
+        return_type must be 'list' or 'string'"""
+        return Connectwise.get_charge_to_info(self, tickets, activities, charge_codes, return_type, include_company,
+                                              include_project_name, bold_first_item)

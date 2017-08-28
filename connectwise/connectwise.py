@@ -1,12 +1,10 @@
 import json
-import os
 import urllib.parse
 from datetime import date, datetime
-
 import requests
 from dateutil.relativedelta import relativedelta
-
 import constants
+
 
 class Connectwise:
 
@@ -139,10 +137,96 @@ class Connectwise:
         return [first_day_next_fy, first_day_this_fy, first_day_last_fy, first_day_2_fy_ago, first_day_3_fy_ago]
 
     @staticmethod
-    def get_custom_field_value(object, key):
-        if hasattr(object, 'customFields'):
-            field = [field for field in object.customFields if field['caption'] == key]
+    def get_custom_field_value(cw_object, key):
+        if hasattr(cw_object, 'customFields'):
+            field = [field for field in cw_object.customFields if field['caption'] == key]
             if field: field = field[0]
             if 'value' in field and field['value']:
                 return field['value']
         return None
+
+    @staticmethod
+    def get_charge_to_info(cw_object, tickets=[], activities=[], charge_codes=[], return_type='string', include_company=True, include_project_name=True, bold_first_item=False):
+        """cw_object can be Time Entry, Expense Entry, or Schedule Entry you want to get charge_to info for.
+        You can return a string or a dict using the return_type parameter"""
+
+        from lib.connectwise_py.connectwise.activity import Activity
+        from lib.connectwise_py.connectwise.ticket import Ticket
+
+        charge_to_id = None
+        charge_to_type = None
+        company_name = None
+
+        if hasattr(cw_object, 'chargeToId'):
+            charge_to_id = cw_object.chargeToId
+            charge_to_type = cw_object.chargeToType
+            company_name = cw_object.company['name']
+        elif hasattr(cw_object, 'objectId'):
+            charge_to_id = cw_object.objectId
+
+            ticket = []
+            if tickets: ticket = [ticket for ticket in tickets if ticket.id == charge_to_id]
+
+            if len(ticket) > 0: ticket = ticket[0]
+            else: ticket = Ticket.fetch_by_id(charge_to_id)
+
+            if ticket:
+                charge_to_type = ticket.recordType
+                company_name = ticket.company['name']
+            else:
+                activity = []
+                if activities: activity = [activity for activity in activities if activity.id == charge_to_id]
+
+                if len(activity) > 0: activity = activity[0]
+                else: activity = Activity.fetch_by_id(charge_to_id)
+
+                if activity:
+                    charge_to_type = 'Activity'
+                    company_name = activity.company['name']
+                else:
+                    charge_to_type = 'Charge Code'
+                    company_name = 'CEC'
+
+        if charge_to_type == 'Activity':
+            if activities:
+                activity = [activity for activity in activities if charge_to_id == activity.id]
+                if len(activity) > 0:
+                    activity = activity[0]
+                else:
+                    activity = Activity.fetch_by_id(charge_to_id)
+            else:
+                activity = Activity.fetch_by_id(charge_to_id)
+            output = []
+            if hasattr(activity, 'opportunity'): output.append('{}'.format(activity.opportunity['name']))
+            output.append('Activity #{}: {}'.format(activity.id, activity.name))
+
+        elif charge_to_type == 'ProjectTicket' or charge_to_type == 'ServiceTicket':
+            if tickets:
+                ticket = [ticket for ticket in tickets if charge_to_id == ticket.id]
+                if len(ticket) > 0:
+                    ticket = ticket[0]
+                else:
+                    ticket = Ticket.fetch_by_id(charge_to_id)
+            else:
+                ticket = Ticket.fetch_by_id(charge_to_id)
+            output = []
+            if include_project_name and ticket.project: output.append('{}'.format(ticket.project['name']))
+            if ticket.phase: output.append('{}'.format(ticket.phase['name']))
+            output.append('Ticket #{}: {}'.format(ticket.id, ticket.summary))
+
+        else:
+            output = [charge_to_type, '{}'.format(charge_to_id)]
+
+        if include_company:
+            output.insert(0, company_name)
+
+        if bold_first_item:
+            first_item = output.pop(0)
+            output.insert(0, '<strong>{}</strong>'.format(first_item))
+
+        if return_type == 'string':
+            return ' / '.join(output)
+        elif return_type == 'list':
+            return output
+
+        return output
