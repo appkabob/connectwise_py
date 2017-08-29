@@ -146,6 +146,15 @@ class Connectwise:
         return None
 
     @staticmethod
+    def get_custom_field_value_from_id(cw_object, _id):
+        if hasattr(cw_object, 'customFields'):
+            field = [field for field in cw_object.customFields if field['id'] == _id]
+            if field: field = field[0]
+            if 'value' in field and field['value']:
+                return field['value']
+        return None
+
+    @staticmethod
     def get_charge_to_info(cw_object, tickets=[], activities=[], charge_codes=[], return_type='string', include_company=True, include_project_name=True, bold_first_item=False):
         """cw_object can be Time Entry, Expense Entry, or Schedule Entry you want to get charge_to info for.
         You can return a string or a dict using the return_type parameter"""
