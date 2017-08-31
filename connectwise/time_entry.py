@@ -8,9 +8,9 @@ from .connectwise import Connectwise
 
 
 class TimeEntry:
-    def __init__(self, chargeToId, chargeToType, **kwargs):
-        self.chargeToId = chargeToId
-        self.chargeToType = chargeToType
+    def __init__(self, **kwargs):
+        self.chargeToId = None
+        self.chargeToType = None
         self.estHourlyCost = 0
         self.estCost = 0
         self.invoice = None
