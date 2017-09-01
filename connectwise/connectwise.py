@@ -155,7 +155,7 @@ class Connectwise:
         return None
 
     @staticmethod
-    def get_charge_to_info(cw_object, tickets=[], activities=[], charge_codes=[], return_type='string', include_company=True, include_project_name=True, bold_first_item=False):
+    def get_charge_to_info(cw_object, tickets=[], activities=[], charge_codes=[], return_type='string', include_company=True, include_project_name=True, include_phase=True, bold_first_item=False):
         """cw_object can be Time Entry, Expense Entry, or Schedule Entry you want to get charge_to info for.
         You can return a string or a dict using the return_type parameter"""
 
@@ -220,7 +220,7 @@ class Connectwise:
                 ticket = Ticket.fetch_by_id(charge_to_id)
             output = []
             if include_project_name and ticket.project: output.append('{}'.format(ticket.project['name']))
-            if ticket.phase: output.append('{}'.format(ticket.phase['name']))
+            if include_phase and ticket.phase: output.append('{}'.format(ticket.phase['name']))
             output.append('Ticket #{}: {}'.format(ticket.id, ticket.summary))
 
         else:

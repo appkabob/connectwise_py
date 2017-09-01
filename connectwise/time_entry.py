@@ -166,8 +166,8 @@ class TimeEntry:
         return 0
 
     def get_charge_to_info(self, tickets=[], activities=[], charge_codes=[], return_type='string', include_company=True,
-                           include_project_name=True, bold_first_item=False):
+                           include_project_name=True, include_phase=True, bold_first_item=False):
         """Optionally include a list of pre-fetched Tickets and/or Activities to prevent it from re-querying CW.
         return_type must be 'list' or 'string'"""
         return Connectwise.get_charge_to_info(self, tickets, activities, charge_codes, return_type, include_company,
-                                              include_project_name, bold_first_item)
+                                              include_project_name, include_phase, bold_first_item)
