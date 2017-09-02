@@ -16,6 +16,19 @@ class Connectwise:
         elif verb == 'POST':
             return cls.__cw_submit_post_request(endpoint, conditions)
 
+    @staticmethod
+    def update_record(endpoint, record_id, path, value, operation='replace'):
+        conditions = json.dumps([{'op': operation, 'path': path, 'value': value}])
+        r = requests.patch(
+            'https://{}{}{}/{}'.format(constants.CW_SERVER, constants.CW_QUERY_URL, endpoint, record_id),
+            headers=constants.CW_HEADERS,
+            data=conditions
+        )
+        if r.status_code == requests.codes.ok or r.ok == True or r.status_code == 201:
+            return r.json()  # json_data.extend(r.json())
+        else:
+            raise RuntimeError('\n{}\n{}\n{}\n{}'.format('{} {}'.format(r.status_code, r.reason), r.url, 'id: {}, op: {}, path: {}, value: {}'.format(record_id, operation, path, value), r.json()['message'] if hasattr(r, 'json') else ''))
+
     @classmethod
     def __cw_submit_post_request(cls, endpoint, conditions):
         if 'search' in endpoint:

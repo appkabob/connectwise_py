@@ -1,9 +1,12 @@
+from flask import json
+
 from .connectwise import Connectwise
 import constants
 
 class Contact:
     def __init__(self, **kwargs):
         # self.id = _id
+        self.communicationItems = []
         self.title = None
         for kwarg in kwargs:
             setattr(self, kwarg, kwargs[kwarg])
@@ -54,3 +57,9 @@ class Contact:
                 for communicationItem in self.communicationItems
                 if communicationItem['communicationType'] == 'Email']
         return emails[i] if emails else None
+
+    def update_email(self, existing_email, new_email):
+        for item in self.communicationItems:
+            if item['value'] == existing_email:
+                item['value'] = new_email
+                return Connectwise.update_record('company/contacts', self.id, 'communicationItems', self.communicationItems)
