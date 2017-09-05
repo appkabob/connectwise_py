@@ -35,13 +35,13 @@ class Contact:
         return [cls(**contact) for contact in contacts]
 
     def get_phone(self, i=0):
-        phones = [communicationItem['value']
+        phones = [communicationItem['value'] if 'value' in communicationItem else ''
                 for communicationItem in self.communicationItems
                 if communicationItem['communicationType'] == 'Phone']
         return phones[i] if phones else None
 
     def get_phone_extension(self, i=0):
-        extensions = [communicationItem['extension']
+        extensions = [communicationItem['extension'] if 'extension' in communicationItem else ''
                 for communicationItem in self.communicationItems
                 if communicationItem['communicationType'] == 'Phone']
         return extensions[i] if extensions else None
@@ -49,7 +49,7 @@ class Contact:
     def get_phone_formatted(self, i=0):
         phone = self.get_phone(i)
         if phone and len(phone) == 10:
-            return '({}) {}-{} {}'.format(phone[:3], phone[3:6], phone[6:10], self.get_phone_extension())
+            return '({}) {}-{} {}'.format(phone[:3], phone[3:6], phone[6:10], 'x{}'.format(self.get_phone_extension()) if self.get_phone_extension() else '')
         return phone
 
     def get_email(self, i=0):
