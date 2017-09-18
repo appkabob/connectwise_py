@@ -13,6 +13,7 @@ class Ticket:
         self.notes = []
         self.project = None
         self.phase = None
+        self.budgetHours = 0
         for kwarg in kwargs:
             setattr(self, kwarg, kwargs[kwarg])
 
