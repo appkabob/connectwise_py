@@ -6,6 +6,7 @@ from lib.connectwise_py.connectwise.connectwise import Connectwise
 class Invoice:
     def __init__(self, **kwargs):
         self.applyToType = None
+        self.applyToId = None
         for kwarg in kwargs:
             setattr(self, kwarg, kwargs[kwarg])
         self.total = round(Decimal(kwargs['total']), 2)
