@@ -50,6 +50,11 @@ class Project:
         if project_ids:
             return cls.fetch_by_id_range(min(project_ids), max(project_ids))
 
+    @classmethod
+    def fetch_by_conditions(cls, conditions):
+        """Submit arbitrary conditions, like 'description contains "AutoTravel"' """
+        return [cls(**project) for project in Connectwise.submit_request('project/projects', conditions)]
+
     def budget_days(self):
         if not hasattr(self, 'budgetHours') or self.budgetHours == 0 or not self.budgetHours:
             return 0
