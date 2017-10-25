@@ -15,10 +15,20 @@ class Contact:
         return "<Contact {} {}>".format(self.id, self.get_email())
 
     @classmethod
+    def fetch_by_id(cls, _id):
+        conditions = 'id={}'.format(_id)
+        contacts = Connectwise.submit_request('company/contacts', conditions)
+        return [cls(**contact) for contact in contacts][0]
+
+    @classmethod
     def fetch_by_email(cls, email):
         child_conditions = 'communicationItems/value="{}"'.format(email)
         contact = Connectwise.submit_request('company/contacts', child_conditions=child_conditions)[0]
         return cls(**contact)
+
+    @classmethod
+    def fetch_all(cls):
+        return [cls(**contact) for contact in Connectwise.submit_request('company/contacts')]
 
     @classmethod
     def fetch_all_internal(cls):
