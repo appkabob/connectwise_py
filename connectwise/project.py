@@ -15,7 +15,7 @@ class Project:
             setattr(self, kwarg, kwargs[kwarg])
 
     def __repr__(self):
-        return "<Project {}>".format(self.name)
+        return "<Project {} - {}>".format(self.id, self.name)
 
     @classmethod
     def fetch_all(cls):
