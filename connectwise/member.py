@@ -5,8 +5,8 @@ from .connectwise import Connectwise
 
 
 class Member:
-    def __init__(self, identifier, officeEmail, **kwargs):
-        self.officeEmail = officeEmail
+    def __init__(self, identifier, **kwargs):
+        self.officeEmail = None
         self.identifier = identifier
         for kwarg in kwargs:
             setattr(self, kwarg, kwargs[kwarg])
