@@ -106,7 +106,13 @@ class ScheduleEntry:
                 ]
 
     def days(self):
-        return Decimal(round(self.hours / 8, 2))
+        return round(Decimal(self.hours / 8), 2)
+
+    def formatted_days(self):
+        if self.days() == 1: return 'Full Day'
+        elif self.days() == 0.5: return 'Half Day'
+        elif self.days() == 0.25: return 'Quarter Day'
+        else: return '{} Days'.format(self.days())
 
     def each_calendar_date(self):
         start_date = datetime.strptime(self.dateStart[:10], '%Y-%m-%d')
