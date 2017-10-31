@@ -39,6 +39,19 @@ class Report:
     def _generate_report_content(self):
         pass  # either modify this or create a subclass for each report type and override this method there
 
+    def get_dateframe(self, on_or_after, before):
+        """
+        Dates can be either datetime objects or strings
+        """
+        if isinstance(on_or_after, str): on_or_after = datetime.strptime(on_or_after, '%Y-%m-%d')
+        if isinstance(before, str): before = datetime.strptime(before, '%Y-%m-%d')
+
+        if on_or_after.day == 1 and (on_or_after + relativedelta(months=1)).strftime('%Y%m%d') == before.strftime('%Y%m%d'):
+            month = on_or_after.strftime('%B %Y')
+        else:
+            month = '{} to {}'.format(on_or_after.strftime('%B %d, %Y'), (before - relativedelta(days=1)).strftime('%B %d, %Y'))
+        return month
+
     def format_month(self, on_or_after, before):
         on_or_after = datetime.strptime(on_or_after, '%Y-%m-%d')
         if on_or_after.day == 1 and (on_or_after + relativedelta(months=1)).strftime('%Y-%m-%d') == before:
