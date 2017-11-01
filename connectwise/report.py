@@ -49,7 +49,7 @@ class Report:
         if on_or_after.day == 1 and (on_or_after + relativedelta(months=1)).strftime('%Y%m%d') == before.strftime('%Y%m%d'):
             month = on_or_after.strftime('%B %Y')
         else:
-            month = '{} to {}'.format(on_or_after.strftime('%B %d, %Y'), (before - relativedelta(days=1)).strftime('%B %d, %Y'))
+            month = '{} to {}'.format(on_or_after.strftime('%b %-d, %Y'), (before - relativedelta(days=1)).strftime('%b %-d, %Y'))
         return month
 
     def format_month(self, on_or_after, before):
