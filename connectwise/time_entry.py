@@ -22,6 +22,28 @@ class TimeEntry:
     def __repr__(self):
         return "<Time Entry {}>".format(self.chargeToId)
 
+    def to_dict(self, include_self=False, schedule_entries=[], tickets=[], activities=[], members=[]):
+        """
+        Get a representation of the TimeEntry object as a Python Dictionary,
+        including calculated values from methods.
+
+        If you can provide a list of schedule entries, tickets, activities, or members that
+        contain records potentially relating to this TimeEntry, additional fields can
+        be returned.
+
+        :param include_self: when True, include the original object under the dictionary
+        key 'self' so that you have it in case you need to reference it later
+        """
+        dict = {}
+        dict['actual_days'] = self.actual_days()
+        dict['daily_rate'] = self.daily_rate()
+        dict['billable_amount'] = self.billable_amount()
+        if members: dict['estimated_cost'] = self.fetch_estimated_cost(members)
+        if schedule_entries or tickets or activities:
+            dict['service_location'] = self.service_location(schedule_entries, tickets, activities)
+        if include_self: dict['self'] = self
+        return {**vars(self), **dict}
+
     @classmethod
     def fetch_by_member_identifier(cls, member_identifier, on_or_after=None, before=None):
         conditions = ['member/identifier="{}"'.format(member_identifier)]

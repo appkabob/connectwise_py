@@ -1,4 +1,5 @@
 from decimal import Decimal
+from pprint import pprint
 
 from dateutil.relativedelta import relativedelta
 
@@ -18,6 +19,22 @@ class ScheduleEntry:
 
     def __repr__(self):
         return "<Schedule Entry {}>".format(self.id)
+
+    def to_dict(self, include_self=False):
+        """
+        Get a representation of the ScheduleEntry object as a Python Dictionary,
+        including calculated values from methods.
+        :param include_self: when True, include the original object under the dictionary
+        key 'self' so that you have it in case you need to reference it later
+        """
+        schedule_dict = {}
+        schedule_dict['days'] = self.days()
+        schedule_dict['formatted_days'] = self.formatted_days()
+        schedule_dict['each_calendar_date'] = self.each_calendar_date()
+        schedule_dict['calendar_days'] = self.calendar_days()
+        schedule_dict['duration_per_calendar_day'] = self.duration_per_calendar_day()
+        if include_self: schedule_dict['self'] = self
+        return {**vars(self), **schedule_dict}
 
     @classmethod
     def fetch_all(cls):
@@ -106,13 +123,18 @@ class ScheduleEntry:
                 ]
 
     def days(self):
-        return round(Decimal(self.hours / 8), 2)
+        return Decimal(round(self.hours / 8, 2))
 
     def formatted_days(self):
-        if self.days() == 1: return 'Full Day'
-        elif self.days() == 0.5: return 'Half Day'
-        elif self.days() == 0.25: return 'Quarter Day'
-        else: return '{} Days'.format(self.days())
+        days = self.days()
+        if days == 1.0:
+            return 'Full Day'
+        elif days == 0.5:
+            return 'Half Day'
+        elif days == 0.25:
+            return 'Quarter Day'
+        else:
+            return '{} Days'.format(days)
 
     def each_calendar_date(self):
         start_date = datetime.strptime(self.dateStart[:10], '%Y-%m-%d')
