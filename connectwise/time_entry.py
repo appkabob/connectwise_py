@@ -111,7 +111,7 @@ class TimeEntry:
     @classmethod
     def fetch_by_charge_to_ids(cls, charge_to_ids, on_or_after=None, before=None):
         if len(charge_to_ids) > 10:
-            raise IOError('Cannot lookup more than 10 chargeToIds at once')
+            raise IOError('Cannot lookup more than 10 chargeToIds at once: {}'.format(', '.join(charge_to_ids)))
         conditions = ['({})'.format(
             'chargeToId={}'.format(' or chargeToId='.join('{}'.format(_id) for _id in charge_to_ids)))]
         if on_or_after: conditions.append('timeStart>=[{}]'.format(on_or_after))

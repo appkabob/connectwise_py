@@ -51,7 +51,7 @@ class ScheduleEntry:
         #     i += 10
         # self.schedule_entries = schedule_entries
         if len(object_ids) > 10:
-            raise IOError('Cannot lookup more than 10 chargeToIds at once')
+            raise IOError('Cannot lookup more than 10 objectIds at once: {}'.format(', '.join(object_ids)))
         conditions = ['({})'.format(
             'objectId={}'.format(' or objectId='.join('{}'.format(_id) for _id in object_ids)))]
         if on_or_after: conditions.append('dateStart>=[{}]'.format(on_or_after))
