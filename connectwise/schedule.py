@@ -10,9 +10,9 @@ from datetime import date, timedelta, datetime
 
 
 class ScheduleEntry:
-    def __init__(self, id, objectId, **kwargs):
+    def __init__(self, id, **kwargs):
         self.id = id
-        self.objectId = objectId
+        self.objectId = None
         self.member = {'identifier': None}
         for kwarg in kwargs:
             setattr(self, kwarg, kwargs[kwarg])
@@ -51,7 +51,7 @@ class ScheduleEntry:
         #     i += 10
         # self.schedule_entries = schedule_entries
         if len(object_ids) > 10:
-            raise IOError('Cannot lookup more than 10 objectIds at once: {}'.format(', '.join(object_ids)))
+            raise IOError('Cannot lookup more than 10 objectIds at once')
         conditions = ['({})'.format(
             'objectId={}'.format(' or objectId='.join('{}'.format(_id) for _id in object_ids)))]
         if on_or_after: conditions.append('dateStart>=[{}]'.format(on_or_after))
@@ -116,10 +116,11 @@ class ScheduleEntry:
         conditions = ' and '.join(conditions)
         company_tickets = Ticket.fetch_by_company_id(company_id)
         company_activities = Activity.fetch_by_company_id(company_id)
-        return [cls(**schedule_entry) for schedule_entry in Connectwise.submit_request('schedule/entries', conditions)
-                if schedule_entry['objectId'] == company_id or
-                schedule_entry['objectId'] in [ticket.id for ticket in company_tickets] or
-                schedule_entry['objectId'] in [activity.id for activity in company_activities]
+        schedule_entries = [cls(**schedule_entry) for schedule_entry in Connectwise.submit_request('schedule/entries', conditions)]
+        return [s for s in schedule_entries
+                if s.objectId == company_id or
+                s.objectId in [ticket.id for ticket in company_tickets] or
+                s.objectId in [activity.id for activity in company_activities]
                 ]
 
     def days(self):
