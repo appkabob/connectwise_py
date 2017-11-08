@@ -13,6 +13,7 @@ from .connectwise import Connectwise
 class Product:
     def __init__(self, **kwargs):
         self.purchaseDate = None
+        self.internalNotes = None
         for kwarg in kwargs:
             setattr(self, kwarg, kwargs[kwarg])
 
