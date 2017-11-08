@@ -13,6 +13,7 @@ class ScheduleEntry:
     def __init__(self, id, **kwargs):
         self.id = id
         self.objectId = None
+        self.where = {'name': None}
         self.member = {'identifier': None}
         for kwarg in kwargs:
             setattr(self, kwarg, kwargs[kwarg])
