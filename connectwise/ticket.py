@@ -27,7 +27,7 @@ class Ticket:
         if len(ticket) > 0:
             ticket = ticket[0]
             return cls(**ticket)
-        return []
+        return None
 
     @classmethod
     def fetch_by_ids(cls, ids):
