@@ -23,8 +23,11 @@ class Ticket:
     @classmethod
     def fetch_by_id(cls, id):
         conditions = 'id={}'.format(id)
-        ticket = Connectwise.submit_request('service/tickets', conditions)[0]
-        return cls(**ticket)
+        ticket = Connectwise.submit_request('service/tickets', conditions)
+        if len(ticket) > 0:
+            ticket = ticket[0]
+            return cls(**ticket)
+        return []
 
     @classmethod
     def fetch_by_ids(cls, ids):
