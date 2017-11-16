@@ -6,6 +6,7 @@ import constants
 class Contact:
     def __init__(self, **kwargs):
         # self.id = _id
+        self.lastName = None
         self.communicationItems = []
         self.title = None
         for kwarg in kwargs:

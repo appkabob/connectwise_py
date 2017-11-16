@@ -9,6 +9,10 @@ from .connectwise import Connectwise
 
 class Company:
     def __init__(self, identifier, **kwargs):
+        self.addressLine1 = None
+        self.city = None
+        self.state = None
+        self.zip = None
         self.identifier = identifier
         self.invoices = []
         for kwarg in kwargs:
