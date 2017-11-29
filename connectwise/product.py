@@ -102,7 +102,6 @@ class Product:
             'chargeToType="Project"'
         ]
         products = [cls(**product) for product in Connectwise.submit_request('procurement/products', conditions)]
-        pprint([vars(p) for p in products])
         ticket_products = [p for p in products if p.chargeToType == 'Ticket']
         ticket_product_ids = [p.id for p in ticket_products]
         ticket_products.extend([p for p in products if p.chargeToType == 'Project' and p.id not in ticket_product_ids])
