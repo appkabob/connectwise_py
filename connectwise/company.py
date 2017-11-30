@@ -26,6 +26,11 @@ class Company:
         return [cls(**company) for company in Connectwise.submit_request('company/companies', fields=fields)]
 
     @classmethod
+    def fetch_by_state(cls, state):
+        conditions = 'state="{}"'.format(state)
+        return [cls(**company) for company in Connectwise.submit_request('company/companies', conditions)]
+
+    @classmethod
     def fetch_all_active(cls):
         conditions = 'status/id=1'
         return [cls(**company) for company in Connectwise.submit_request('company/companies', conditions)]
