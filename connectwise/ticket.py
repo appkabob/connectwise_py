@@ -83,6 +83,11 @@ class Ticket:
     def fetch_all(cls):
         return [cls(**ticket) for ticket in Connectwise.submit_request('service/tickets')]
 
+    @classmethod
+    def fetch_by_record_type(cls, record_type):
+        conditions = 'recordType="{}"'.format(record_type)
+        return [cls(**ticket) for ticket in Connectwise.submit_request('service/tickets', conditions)]
+
     def fetch_notes(self, include_internal_analysis=False, include_detail_description=True):
         return [note for note in Connectwise.submit_request('service/tickets/{}/notes'.format(self.id))
                 if note['internalAnalysisFlag'] == include_internal_analysis
