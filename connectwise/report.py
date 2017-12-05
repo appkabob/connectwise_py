@@ -78,7 +78,7 @@ class Report:
         if self.filters:
             header_text += '<br /><strong>Filters:</strong> {}'.format(' - '.join(['{}: {}'.format(k, v) for k, v in self.filters.items()]))
         if self.sort:
-            header_text += '<br /><strong>Sort:</strong> By {}'.format(self.sort)
+            header_text += '<br /><strong>Sort:</strong> By {}'.format(self.sort.title())
         header_text += '</font>'
 
         header = Paragraph(header_text, styles['Normal'])
