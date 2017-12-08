@@ -1,3 +1,4 @@
+import datetime
 from lib.connectwise_py.connectwise.connectwise import Connectwise
 
 
@@ -55,3 +56,15 @@ class SystemReport:
     @classmethod
     def fetch_all_time_statuses(cls):
         return cls.fetch('TimeStatus')
+
+    @classmethod
+    def fetch_holiday_list(cls, filter_to_list=False):
+        """
+        Fetch holiday records from the Holiday Setup Table
+        :param filter_to_list: Leave as default of False to return all holiday records.
+        Otherwise, you can limit to a specific list as defined in the Holiday setup table.
+        :return: dict of holiday dates, one record per calendar day
+        """
+        conditions = []
+        if filter_to_list: conditions = 'Holiday_List_Name="{}"'.format(filter_to_list)
+        return cls.fetch('holiday', conditions)
