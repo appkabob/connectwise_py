@@ -62,7 +62,8 @@ class SystemReport:
         """
         Fetch holiday records from the Holiday Setup Table
         :param filter_to_list: Leave as default of False to return all holiday records.
-        Otherwise, you can limit to a specific list as defined in the Holiday setup table.
+        Otherwise, you can limit to a specific list as defined in the Holiday setup table,
+        for example "Standard Holidays".
         :return: dict of holiday dates, one record per calendar day
         """
         conditions = []

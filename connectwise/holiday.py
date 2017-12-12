@@ -6,6 +6,15 @@ from lib.connectwise_py.connectwise.system_report import SystemReport
 
 class Holiday:
     def __init__(self, **kwargs):
+        self.Description = ''
+        self.Holiday_Date = ''
+        self.Holiday_List_Name = ''
+        self.Holiday_List_RecID = ''
+        self.Last_Update_UTC = ''
+        self.Time_End = ''
+        self.Time_Start = ''
+        self.Time_Zone = ''
+        self.Updated_By = ''
         for kwarg in kwargs:
             setattr(self, kwarg, kwargs[kwarg])
 
