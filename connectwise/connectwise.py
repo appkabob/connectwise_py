@@ -1,6 +1,6 @@
 import json
 import urllib.parse
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 import requests
 from dateutil.relativedelta import relativedelta
 import constants
@@ -110,23 +110,38 @@ class Connectwise:
         return conditions_string
 
     @staticmethod
-    def current_fy():
-        return Connectwise.fy_of_date(date.today().strftime('%Y-%m-%d'))
+    def current_fy(return_format='%Y-%m-%d'):
+        """
+        Return the start and end dates of the current Financial Year
+        :param return_format: the format to return the dates in. Defaults to %Y-%m-%d. Set to 'date_object' for date objects
+        :return: Tuple of dates as either strings or date objects
+        """
+        return Connectwise.fy_of_date(date.today().strftime('%Y-%m-%d'), return_format)
 
     @staticmethod
-    def fy_of_date(the_date):
+    def fy_of_date(the_date, return_format='%Y-%m-%d'):
+        """
+        Return the start and end dates of the Financial Year of the given date
+        :param the_date: the date to return the FY for
+        :param return_format: String format to return the dates in.
+        Returns a date object if return_format == False or 'date_object'
+        :return: Tuple of dates as either strings or date objects
+        """
         # print(the_date)
         the_date = datetime.strptime(the_date, '%Y-%m-%d')
         # print(the_date)
         # print(the_date.month)
         if the_date.month > 6:
-            on_or_after = date(the_date.year, constants.FIRST_DAY_OF_FY['month'], constants.FIRST_DAY_OF_FY['day']).strftime('%Y-%m-%d')
-            before = date(the_date.year + 1, constants.FIRST_DAY_OF_FY['month'], constants.FIRST_DAY_OF_FY['day']).strftime('%Y-%m-%d')
+            on_or_after = datetime(the_date.year, constants.FIRST_DAY_OF_FY['month'], constants.FIRST_DAY_OF_FY['day'])
+            before = datetime(the_date.year + 1, constants.FIRST_DAY_OF_FY['month'], constants.FIRST_DAY_OF_FY['day'])
         else:
-            on_or_after = date(the_date.year - 1, constants.FIRST_DAY_OF_FY['month'], constants.FIRST_DAY_OF_FY['day']).strftime('%Y-%m-%d')
-            before = date(the_date.year, constants.FIRST_DAY_OF_FY['month'], constants.FIRST_DAY_OF_FY['day']).strftime('%Y-%m-%d')
+            on_or_after = datetime(the_date.year - 1, constants.FIRST_DAY_OF_FY['month'], constants.FIRST_DAY_OF_FY['day'])
+            before = datetime(the_date.year, constants.FIRST_DAY_OF_FY['month'], constants.FIRST_DAY_OF_FY['day'])
 
-        return on_or_after, before
+        if return_format == 'date_object' or return_format == 'date' or not return_format:
+            return on_or_after, before
+        else:  # return date object
+            return on_or_after.strftime(return_format), before.strftime(return_format)
 
     @staticmethod
     def fy_start_dates(of_date=None):
@@ -144,6 +159,36 @@ class Connectwise:
             '%Y-%m-%d')
 
         return [first_day_next_fy, first_day_this_fy, first_day_last_fy, first_day_2_fy_ago, first_day_3_fy_ago]
+
+    @classmethod
+    def workdays_remaining_in_fy(cls, on_or_after=None):
+        """
+        Returns the count of workdays (weekdays - holidays) from the on_or_after date (inclusive) to the end
+        of the corresponding FY. Make sure Holidays setup table is up to date.
+        :param on_or_after: date string in format '%Y-%m-%d'. If left blank, will default to current date
+        :return: Count of workdays that remain from on_or_after date until the end of the FY
+        """
+        from lib.connectwise_py.connectwise.holiday import Holiday
+        if not on_or_after: on_or_after = datetime.now().strftime('%Y-%m-%d')
+        date_start_this_fy, date_start_next_fy = cls.fy_of_date(on_or_after, return_format='date_object')
+        on_or_after = datetime.strptime(on_or_after, '%Y-%m-%d')
+        future_day_generator = (on_or_after + timedelta(x + 1) for x in range((date_start_next_fy - on_or_after).days))
+        return sum(day.weekday() < 5 for day in future_day_generator) - len(Holiday.fetch_remaining_this_fy(on_or_after.strftime('%Y-%m-%d')))
+
+    @classmethod
+    def workdays_passed_in_fy(cls, before=None):
+        """
+        Returns the count of workdays (weekdays - holidays) from the start of the FY that 'before' is in,
+        up until (but not including) the 'before' date. Make sure Holidays setup table is up to date.
+        :param before: date string in format '%Y-%m-%d'. If left blank, will default to current date.
+        :return: Count of workdays that have elapsed from start of FY until the 'before' date
+        """
+        from lib.connectwise_py.connectwise.holiday import Holiday
+        if not before: before = datetime.now().strftime('%Y-%m-%d')
+        date_start_this_fy, date_start_next_fy = cls.fy_of_date(before, return_format='date_object')
+        before = datetime.strptime(before, '%Y-%m-%d')
+        past_day_generator = (date_start_this_fy + timedelta(x + 1) for x in range((before - date_start_this_fy).days))
+        return sum(day.weekday() < 5 for day in past_day_generator) - len(Holiday.fetch_passed_this_fy(before.strftime('%Y-%m-%d')))
 
     @staticmethod
     def get_custom_field_value(cw_object, key):
