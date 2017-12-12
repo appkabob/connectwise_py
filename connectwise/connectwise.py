@@ -10,7 +10,8 @@ class Connectwise:
 
     @classmethod
     def submit_request(cls, endpoint, conditions='', filters=None, verb='GET', child_conditions='', fields=None):
-        if conditions and ('search' in endpoint or verb != 'POST'): conditions = cls.conditions_to_str(conditions)
+        if conditions or conditions == []:
+            if 'search' in endpoint or verb != 'POST': conditions = cls.conditions_to_str(conditions)
         if verb == 'GET':
             return cls.__cw_submit_get_request(endpoint, conditions, filters, child_conditions, fields)
         elif verb == 'POST':
@@ -41,10 +42,8 @@ class Connectwise:
         )
 
         if r.status_code == requests.codes.ok or r.ok == True or r.status_code == 201:
-            # print('rjson post', r.json())
             return r.json()  # json_data.extend(r.json())
         else:
-            # print('error with {}'.format(endpoint))
             raise RuntimeError('\n{}\n{}\n{}\n{}'.format('{} {}'.format(r.status_code, r.reason), r.url, conditions, r.json()['message'] if hasattr(r, 'json') else ''))
 
     @classmethod
@@ -66,13 +65,9 @@ class Connectwise:
         page = 1
 
         while True:
-            # print(r.links['next']['url'])
             if r.status_code == requests.codes.ok or r.ok == True or r.status_code == 201:
-                # print('rjson get', r.json())
                 json_data.extend(r.json())
             else:
-                # print('error with {}'.format(endpoint))
-                # raise RuntimeError(r.json()['message'])
                 raise RuntimeError('\n{}\n{}\n{}\n{}'.format('{} {}'.format(r.status_code, r.reason), r.url, conditions,
                                                              r.json()['message'] if hasattr(r, 'json') else ''))
 
@@ -96,8 +91,9 @@ class Connectwise:
 
         filters_string = '{}{}?conditions={}'.format(constants.CW_QUERY_URL, endpoint,
                                                      urllib.parse.quote_plus(conditions))
+
         filters_string += '&page={}&pageSize={}'.format(filters['page'], filters['pageSize'])
-        filters_string += '&childconditions={}'.format(child_conditions)
+        if child_conditions: filters_string += '&childconditions={}'.format(child_conditions)
         if fields: filters_string += '&fields={}'.format(fields)
 
         if 'orderBy' in filters:
