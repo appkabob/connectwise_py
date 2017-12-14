@@ -24,7 +24,9 @@ class Contact:
     @classmethod
     def fetch_by_email(cls, email):
         child_conditions = 'communicationItems/value="{}"'.format(email)
-        contact = Connectwise.submit_request('company/contacts', child_conditions=child_conditions)[0]
+        contacts = Connectwise.submit_request('company/contacts', child_conditions=child_conditions)
+        if len(contacts) > 0: contact = contacts[0]
+        else: contact = None
         return cls(**contact)
 
     @classmethod
