@@ -61,8 +61,10 @@ class ScheduleEntry:
                 Connectwise.submit_request('schedule/entries', conditions)]
 
     @classmethod
-    def fetch_by_object_id(cls, object_id):
-        conditions = 'objectId={}'.format(object_id)
+    def fetch_by_object_id(cls, object_id, on_or_after=None, before=None):
+        conditions = ['objectId={}'.format(object_id)]
+        if on_or_after: conditions.append('dateStart>=[{}]'.format(on_or_after))
+        if before: conditions.append('dateStart<[{}]'.format(before))
         return [cls(**schedule_entry) for schedule_entry in Connectwise.submit_request('schedule/entries', conditions)]
 
     @classmethod
