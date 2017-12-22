@@ -1,3 +1,4 @@
+import datetime
 from decimal import Decimal
 
 from .connectwise import Connectwise
@@ -14,11 +15,32 @@ class Ticket:
         self.project = None
         self.phase = None
         self.budgetHours = 0
+        self.estimatedStartDate = None
         for kwarg in kwargs:
             setattr(self, kwarg, kwargs[kwarg])
 
     def __repr__(self):
         return "<Ticket {}>".format(self.id)
+
+    def to_dict(self, include_self=False, schedule_entries=[], time_entries=[]):
+        if schedule_entries:
+            schedule_entries = [s for s in schedule_entries if s.objectId == self.id]
+        else:
+            schedule_entries = self.fetch_schedule_entries()
+        if time_entries:
+            time_entries = [t for t in time_entries if t.chargeToId == self.id and 'Ticket' in t.chargeToType]
+        else:
+            time_entries = self.fetch_time_entries()
+
+        future_schedule = [s for s in schedule_entries
+                           if s.dateStart >= datetime.datetime.now().strftime('%Y-%m-%d')]
+        ticket_dict = {}
+        ticket_dict['budget_days'] = self.budget_days()
+        ticket_dict['schedule_days'] = sum([s.days() for s in schedule_entries])
+        ticket_dict['future_schedule_days'] = sum([s.days() for s in future_schedule])
+        ticket_dict['actual_days'] = self.actual_days(time_entries)
+        if include_self: ticket_dict['self'] = self
+        return {**vars(self), **ticket_dict}
 
     @classmethod
     def fetch_by_id(cls, id):
@@ -60,8 +82,10 @@ class Ticket:
         return [cls(**ticket) for ticket in Connectwise.submit_request('service/tickets', conditions)]
 
     @classmethod
-    def fetch_by_board_names(cls, board_names=[]):
-        conditions = 'board/name="' + '" or board/name="'.join(board_names) + '"'
+    def fetch_by_board_names(cls, board_names=[], on_or_after=None, before=None):
+        conditions = ['board/name="' + '" or board/name="'.join(board_names) + '"']
+        if on_or_after: conditions.append('estimatedStartDate>=[{}]'.format(on_or_after))
+        if before: conditions.append('estimatedStartDate<[{}]'.format(before))
         return [cls(**ticket) for ticket in Connectwise.submit_request('service/tickets', conditions)]
 
     @classmethod
@@ -115,9 +139,9 @@ class Ticket:
         hours = self.budgetHours if hasattr(self, 'budgetHours') and self.budgetHours else 0
         return Decimal(round(hours / 8, 2))
 
-    def fetch_schedule_entries(self):
+    def fetch_schedule_entries(self, on_or_after=None, before=None):
         from .schedule import ScheduleEntry
-        self.schedule_entries = ScheduleEntry.fetch_by_object_id(self.id)
+        self.schedule_entries = ScheduleEntry.fetch_by_object_id(self.id, on_or_after, before)
         return self.schedule_entries
 
     def schedule_hours(self, schedule_entries=[]):
@@ -125,10 +149,13 @@ class Ticket:
             self.schedule_entries = [s for s in schedule_entries if s.objectId == self.id]
         elif not self.schedule_entries:
             self.fetch_schedule_entries()
-
         return sum([schedule_entry.hours for schedule_entry in self.schedule_entries])
 
-    def schedule_days(self, schedule_entries=[]):
+    def schedule_days(self, schedule_entries=[], on_or_after=None, before=None):
+        if len(schedule_entries) > 0:
+            schedule_entries = [s for s in schedule_entries if s.dateStart >= datetime.datetime.now().strftime('%Y-%m-%d')]
+        else:
+            schedule_entries = self.fetch_schedule_entries(on_or_after, before)
         return round(self.schedule_hours(schedule_entries) / 8, 2)
 
     def est_nbr_consultants(self):
