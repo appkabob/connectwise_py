@@ -105,8 +105,8 @@ class Project:
 
 
 class Phase:
-    def __init__(self, description, **kwargs):
-        self.description = description
+    def __init__(self, **kwargs):
+        self.description = None
         for kwarg in kwargs:
             setattr(self, kwarg, kwargs[kwarg])
 
@@ -119,3 +119,9 @@ class Phase:
 
     def budget_days(self):
         return round(self.budgetHours / 8, 2)
+
+    def schedule_days(self):
+        return round(self.scheduledHours / 8, 2)
+
+    def actual_days(self):
+        return round(self.actualHours / 8, 2)
