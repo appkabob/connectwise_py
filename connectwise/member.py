@@ -46,7 +46,7 @@ class Member:
         return [cls(**member) for member in Connectwise.submit_request('system/members', conditions, filters)]
 
     def hourly_cost(self, on_date='today'):
-        if on_date.lower() == 'today' or on_date >= '2016-07-01':  # HARDCODED: NEEDS ADJUSTMENT
+        if on_date.lower() == 'today' or on_date >= Connectwise.current_fy()[0]:
             return self.hourlyCost
         on_date = datetime.strptime(on_date, '%Y-%m-%d')
         if on_date.month >= 7:
