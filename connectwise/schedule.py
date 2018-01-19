@@ -15,6 +15,7 @@ class ScheduleEntry:
         self.objectId = None
         self.where = {'name': None}
         self.member = {'identifier': None}
+        self.dateStart = None
         for kwarg in kwargs:
             setattr(self, kwarg, kwargs[kwarg])
 

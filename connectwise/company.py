@@ -21,6 +21,12 @@ class Company:
     def __repr__(self):
         return "<Company {}>".format(self.identifier)
 
+    def to_dict(self, include_self=False):
+        company_dict = {}
+        company_dict['phone_formatted'] = self.phone_formatted()
+        if include_self: company_dict['self'] = self
+        return {**vars(self), **company_dict}
+
     @classmethod
     def fetch_all(cls, fields=None):
         return [cls(**company) for company in Connectwise.submit_request('company/companies', fields=fields)]

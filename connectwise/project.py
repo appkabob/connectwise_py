@@ -55,6 +55,17 @@ class Project:
         """Submit arbitrary conditions, like 'description contains "AutoTravel"' """
         return [cls(**project) for project in Connectwise.submit_request('project/projects', conditions)]
 
+    def to_dict(self, include_self=False, tickets=[]):
+        dict = {}
+        dict['budget_days'] = self.budget_days()
+        if tickets: dict['onsite_visits'] = self.onsite_visits(tickets)
+        dict['business_unit_name'] = self.business_unit_name()
+        dict['estimated_revenue'] = self.estimated_revenue()
+        dict['estimated_cost'] = self.estimated_cost()
+        if tickets: dict['estimated_days'] = self.estimated_days(tickets)
+        if include_self: dict['self'] = self
+        return {**vars(self), **dict}
+
     def budget_days(self):
         if not hasattr(self, 'budgetHours') or self.budgetHours == 0 or not self.budgetHours:
             return 0
@@ -107,6 +118,10 @@ class Project:
 class Phase:
     def __init__(self, **kwargs):
         self.description = None
+        self.notes = None
+        self.budgetHours = 0
+        self.scheduledHours = 0
+        self.actualHours = 0
         for kwarg in kwargs:
             setattr(self, kwarg, kwargs[kwarg])
 
@@ -116,6 +131,14 @@ class Phase:
     @classmethod
     def fetch_by_project_id(cls, project_id):
         return [cls(**phase) for phase in Connectwise.submit_request('project/projects/{}/phases'.format(project_id))]
+
+    def to_dict(self, include_self=False):
+        project_dict = {}
+        project_dict['budget_days'] = self.budget_days()
+        project_dict['schedule_days'] = self.schedule_days()
+        project_dict['actual_days'] = self.actual_days()
+        if include_self: project_dict['self'] = self
+        return {**vars(self), **project_dict}
 
     def budget_days(self):
         return round(self.budgetHours / 8, 2)
