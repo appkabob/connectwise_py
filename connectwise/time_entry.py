@@ -1,28 +1,27 @@
-from datetime import datetime
 from decimal import Decimal
-
-from lib.connectwise_py.connectwise.activity import Activity
 from lib.connectwise_py.connectwise.member import Member
-from lib.connectwise_py.connectwise.ticket import Ticket
+from lib.connectwise_py.connectwise.system_report import TimeReport
 from .connectwise import Connectwise
 
 
 class TimeEntry:
     def __init__(self, **kwargs):
+        self.id = None
         self.chargeToId = None
         self.chargeToType = None
         self.estHourlyCost = 0
         self.estCost = 0
         self.invoice = None
         self.notes = None
+        self.system_report = None
+        self.actualHours = None
         for kwarg in kwargs:
             setattr(self, kwarg, kwargs[kwarg])
-        self.actualHours = Decimal(kwargs['actualHours'])
 
     def __repr__(self):
         return "<Time Entry {}>".format(self.chargeToId)
 
-    def to_dict(self, include_self=False, schedule_entries=[], tickets=[], activities=[], members=[]):
+    def to_dict(self, include_self=False, schedule_entries=[], tickets=[], activities=[], members=[], system_reports=[]):
         """
         Get a representation of the TimeEntry object as a Python Dictionary,
         including calculated values from methods.
@@ -38,9 +37,13 @@ class TimeEntry:
         dict['actual_days'] = self.actual_days()
         dict['daily_rate'] = self.daily_rate()
         dict['billable_amount'] = self.billable_amount()
-        if members: dict['estimated_cost'] = self.fetch_estimated_cost(members)
+        if members: dict['estimated_cost'] = self.fetch_estimated_cost(members, fetch_if_not_found=False)
         if schedule_entries or tickets or activities:
             dict['service_location'] = self.service_location(schedule_entries, tickets, activities)
+        if system_reports:
+            dict['system_report'] = self.fetch_system_report(system_reports, fetch_if_not_found=False)
+            if self.system_report:
+                dict['estimated_cost'] = self.actualHours * self.system_report.Hourly_Cost_Decimal
         if include_self: dict['self'] = self
         return {**vars(self), **dict}
 
@@ -99,7 +102,7 @@ class TimeEntry:
             conditions.append('timeStart<[{}]'.format(before))
 
         return [cls(**time_entry) for time_entry in
-                Connectwise.submit_request('time/entries', conditions)]
+                        Connectwise.submit_request('time/entries', conditions)]
 
     @classmethod
     def fetch_by_charge_to_id(cls, charge_to_id, charge_to_type=None):
@@ -145,14 +148,14 @@ class TimeEntry:
             return Decimal(0)
         return Decimal(self.hoursBilled * self.hourlyRate)
 
-    def fetch_estimated_cost(self, members=None):
+    def fetch_estimated_cost(self, members=None, fetch_if_not_found=False):
 
         if members:
             try:
                 member = [member for member in members if member.identifier == self.member['identifier']][0]
             except IndexError:
                 return 0
-        else:
+        elif fetch_if_not_found:
             try:
                 member = Member.fetch_member_by_identifier(self.member['identifier'])
             except IndexError:
@@ -165,7 +168,7 @@ class TimeEntry:
         if self.workType['name'] == 'Professional Development':
             self.estHourlyCost = round(self.estHourlyCost / 2, 2)
 
-        self.estCost = round(self.estHourlyCost * self.actualHours, 2)
+        self.estCost = round(float(self.estHourlyCost) * self.actualHours, 2)
         return self.estCost
 
     def override_specific_member_hourly_cost(self, member):
@@ -193,3 +196,15 @@ class TimeEntry:
         return_type must be 'list' or 'string'"""
         return Connectwise.get_charge_to_info(self, tickets, activities, charge_codes, return_type, include_company,
                                               include_project_name, include_phase, bold_first_item)
+
+    def fetch_system_report(self, system_reports=[], fetch_if_not_found=False):
+        if len(system_reports) == 0 and fetch_if_not_found:
+            return TimeReport.fetch_by_time_entry_id(self.id)
+        else:
+            report = [r for r in system_reports if r.Time_RecID == self.id]
+            if len(report) > 0:
+                self.system_report = report[0]
+                return self.system_report
+            else:
+                print('Missing System Report for time entry {}'.format(self.id))
+                return None
