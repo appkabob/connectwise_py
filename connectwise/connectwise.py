@@ -58,15 +58,15 @@ class Connectwise:
         filters_string = cls.__get_filters_string(endpoint, conditions, filters, child_conditions, fields)
         r = requests.get('https://{}{}'.format(constants.CW_SERVER, filters_string), headers=constants.CW_HEADERS)
 
-        if 'system/reports/' in endpoint or 'system/documents/count' == endpoint:
-            return json.loads(r.text)
-
         json_data = []
         page = 1
 
         while True:
             if r.status_code == requests.codes.ok or r.ok == True or r.status_code == 201:
-                json_data.extend(r.json())
+                if 'system/reports/' in endpoint or 'system/documents/count' == endpoint:
+                    json_data.extend(cls.__system_report_to_dict(json.loads(r.text)))
+                else:
+                    json_data.extend(r.json())
             else:
                 raise RuntimeError('\n{}\n{}\n{}\n{}'.format('{} {}'.format(r.status_code, r.reason), r.url, conditions,
                                                              r.json()['message'] if hasattr(r, 'json') else ''))
@@ -83,6 +83,19 @@ class Connectwise:
                              headers=constants.CW_HEADERS)
 
         return json_data
+
+    @staticmethod
+    def __system_report_to_dict(report_data):
+        keys = [list(col.keys())[0] for col in report_data['column_definitions']]
+
+        objects = []
+        for object_values in report_data['row_values']:
+            object = {}
+            for key in keys:
+                object[key] = object_values[keys.index(key)]
+            objects.append(object)
+
+        return objects
 
     @staticmethod
     def __get_filters_string(endpoint, conditions, filters, child_conditions, fields):

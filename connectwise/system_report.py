@@ -18,18 +18,11 @@ class SystemReport:
 
     @staticmethod
     def fetch(name, conditions=[], filters={}):
-        report_data = Connectwise.submit_request('system/reports/{}'.format(name), conditions, filters)
+        return Connectwise.submit_request('system/reports/{}'.format(name), conditions, filters)
 
-        keys = [list(col.keys())[0] for col in report_data['column_definitions']]
-
-        objects = []
-        for object_values in report_data['row_values']:
-            object = {}
-            for key in keys:
-                object[key] = object_values[keys.index(key)]
-            objects.append(object)
-
-        return objects
+    @classmethod
+    def fetch_all(cls):
+        return [cls(**report, name=cls.name) for report in cls.fetch(cls.name)]
 
     @classmethod
     def fetch_project_headers_by_date_entered(cls, on_or_after=None, before=None):
@@ -71,48 +64,45 @@ class SystemReport:
 
 
 class TimeReport(SystemReport):
+    name = 'time'
+
     def __init__(self, **kwargs):
         self.name = 'time'
         for kwarg in kwargs:
             setattr(self, kwarg, kwargs[kwarg])
 
     @classmethod
-    def fetch_by_business_unit_name(cls, business_unit_name):
+    def fetch_by_business_unit_name(cls, business_unit_name, on_or_after=None, before=None):
         conditions = ['BusGroup="{}"'.format(business_unit_name)]
-        return [cls(**time, name='time') for time in cls.fetch('time', conditions)]
+        # conditions.append()
+        return [cls(**time, name=cls.name) for time in cls.fetch(cls.name, conditions)]
 
     @classmethod
     def fetch_by_time_entry_id(cls, _id):
         conditions = ['Time_RecID={}'.format(_id)]
-        reports = [cls(**time, name='time') for time in cls.fetch('time', conditions)]
+        reports = [cls(**time, name=cls.name) for time in cls.fetch(cls.name, conditions)]
         if len(reports) > 0:
             return reports[0]
         return None
 
-
-class SystemReportExpense(SystemReport):
     @classmethod
-    def fetch_by_date_range(cls, on_or_after=None, before=None, as_dataframe=False):
+    def fetch_by_ticket_id(cls, _id):
+        conditions = ['SR_Service_RecID={}'.format(_id)]
+        return [cls(**time, name=cls.name) for time in cls.fetch(cls.name, conditions)]
+
+    @classmethod
+    def fetch_by_date_range(cls, on_or_after=None, before=None):
         conditions = []
         if on_or_after:
-            conditions.append('Date_Expense>=[{}]'.format(on_or_after))
+            conditions.append('Date_Start>=[{}]'.format(on_or_after))
         if before:
-            conditions.append('Date_Expense<[{}]'.format(before))
-        if as_dataframe:
-            df = DataUtil.get_dataframe(cls.fetch('Expense', conditions))
-            df['Date_Expense'] = pd.to_datetime(df['Date_Expense'])
-            return df
-        return [cls(**report, name='Expense') for report in cls.fetch('Expense', conditions)]
+            conditions.append('Date_Start<[{}]'.format(before))
+        return [cls(**report, name=cls.name) for report in cls.fetch(cls.name, conditions)]
 
 
-class SystemReportProduct(SystemReport):
-    name = 'Product'
-    date_field = 'Date_Entered'
-
-    @classmethod
-    def fetch_by_business_unit_name(cls, business_unit_name):
-        conditions = ['BusGroup="{}"'.format(business_unit_name)]
-        return [cls(**report, name='Product') for report in cls.fetch('Product', conditions)]
+class SystemReportExpense(SystemReport):
+    name = 'Expense'
+    date_field = 'Date_Expense'
 
     @classmethod
     def fetch_by_date_range(cls, on_or_after=None, before=None, as_dataframe=False):
@@ -126,6 +116,31 @@ class SystemReportProduct(SystemReport):
             df[cls.date_field] = pd.to_datetime(df[cls.date_field])
             return df
         return [cls(**report, name=cls.name) for report in cls.fetch(cls.name, conditions)]
+
+
+class SystemReportProduct(SystemReport):
+    name = 'Product'
+    date_field = 'Date_Entered'
+
+    @classmethod
+    def fetch_by_business_unit_name(cls, business_unit_name):
+        conditions = ['BusGroup="{}"'.format(business_unit_name)]
+        return [cls(**report, name='Product') for report in cls.fetch('Product', conditions)]
+
+    @classmethod
+    def fetch_by_date_range(cls, on_or_after=None, before=None, as_dataframe=False):
+        filters = {}
+        conditions = []
+        if on_or_after:
+            conditions.append('{}>=[{}]'.format(cls.date_field, on_or_after))
+        if before:
+            conditions.append('{}<[{}]'.format(cls.date_field, before))
+        if as_dataframe:
+            df = DataUtil.get_dataframe(cls.fetch(cls.name, conditions, filters))
+            if len(df) > 0:
+                df[cls.date_field] = pd.to_datetime(df[cls.date_field])
+            return df
+        return [cls(**report, name=cls.name) for report in cls.fetch(cls.name, conditions, filters)]
 
     @classmethod
     def fetch_by_business_unit_id(cls, business_unit_id, on_or_after=None, before=None, as_dataframe=False):
@@ -141,3 +156,11 @@ class SystemReportProduct(SystemReport):
                 df[cls.date_field] = pd.to_datetime(df[cls.date_field])
             return df
         return [cls(**report, name=cls.name) for report in data_dict] if len(data_dict) > 0 else []
+
+
+class SystemReportService(SystemReport):
+    name = 'Service'
+
+
+class SystemReportProject(SystemReport):
+    name = 'Project'
