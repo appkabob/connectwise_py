@@ -7,18 +7,23 @@ from .connectwise import Connectwise
 
 
 class ExpenseEntry:
-    def __init__(self, amount, **kwargs):
+    def __init__(self, **kwargs):
         self.chargeToId = None
         self.chargeToType = None
         self.notes = None
-        if not amount:
-            amount = 0
-        self.amount = round(Decimal(amount), 2)
         for kwarg in kwargs:
             setattr(self, kwarg, kwargs[kwarg])
+        self.amount = Decimal(kwargs['amount']) if hasattr(kwargs, 'amount') else Decimal(0)
 
     def __repr__(self):
         return "<Expense Entry {}>".format(self.id)
+
+    def to_dict(self, include_self=False, expense_types=[]):
+        expense_dict = {}
+        expense_dict['billable_amount'] = self.billable_amount()
+        if expense_types: expense_dict['reimbursable_amount'] = self.reimbursable_amount(expense_types)
+        if include_self: expense_dict['self'] = self
+        return {**vars(self), **expense_dict}
 
     @classmethod
     def fetch_by_charge_to_ids(cls, charge_to_ids, on_or_after=None, before=None):
@@ -44,6 +49,11 @@ class ExpenseEntry:
                                      Connectwise.submit_request('expense/entries', conditions)])
                 conditions = []
         return expense_entries
+
+    @classmethod
+    def fetch_by_charge_to_id(cls, _id):
+        conditions = 'chargeToId={}'.format(_id)
+        return [cls(**expense_entry) for expense_entry in Connectwise.submit_request('expense/entries', conditions)]
 
     @classmethod
     def fetch_by_date_range(cls, on_or_after=None, before=None):
