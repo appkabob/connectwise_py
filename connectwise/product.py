@@ -120,6 +120,17 @@ class Product:
         products = [cls(**product) for product in Connectwise.submit_request('procurement/products', conditions)]
         return [p for p in products if p.chargeToId in ticket_ids]
 
+    @classmethod
+    def fetch_by_business_unit_id(cls, business_unit_id, on_or_after=None, before=None):
+        conditions = ['businessUnitId={}'.format(business_unit_id)]
+        if on_or_after:
+            conditions.append('purchaseDate>=[{}]'.format(on_or_after))
+        if before:
+            conditions.append('purchaseDate<[{}]'.format(before))
+
+        return [cls(**product) for product in
+                Connectwise.submit_request('procurement/products', conditions)]
+
     def billable_amount(self):
         if self.billableOption == 'Billable':
             return Decimal(round(self.quantity * self.price, 2))
