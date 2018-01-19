@@ -1,4 +1,6 @@
-import datetime
+import pandas as pd
+import constants
+from cec_api.models.data_util import DataUtil
 from lib.connectwise_py.connectwise.connectwise import Connectwise
 
 
@@ -11,14 +13,11 @@ class SystemReport:
     def __repr__(self):
         return "<System Report {}>".format(self.name)
 
-    @staticmethod
-    def fetch(name, conditions=''):
-        filters = {
-            'page': 1,
-            'pageSize': 1000
-            # 'orderBy': 'Holiday_Date asc'
-        }
+    def to_dict(self):
+        return vars(self)
 
+    @staticmethod
+    def fetch(name, conditions=[], filters={}):
         report_data = Connectwise.submit_request('system/reports/{}'.format(name), conditions, filters)
 
         keys = [list(col.keys())[0] for col in report_data['column_definitions']]
@@ -69,3 +68,76 @@ class SystemReport:
         conditions = []
         if filter_to_list: conditions = 'Holiday_List_Name="{}"'.format(filter_to_list)
         return cls.fetch('holiday', conditions)
+
+
+class TimeReport(SystemReport):
+    def __init__(self, **kwargs):
+        self.name = 'time'
+        for kwarg in kwargs:
+            setattr(self, kwarg, kwargs[kwarg])
+
+    @classmethod
+    def fetch_by_business_unit_name(cls, business_unit_name):
+        conditions = ['BusGroup="{}"'.format(business_unit_name)]
+        return [cls(**time, name='time') for time in cls.fetch('time', conditions)]
+
+    @classmethod
+    def fetch_by_time_entry_id(cls, _id):
+        conditions = ['Time_RecID={}'.format(_id)]
+        reports = [cls(**time, name='time') for time in cls.fetch('time', conditions)]
+        if len(reports) > 0:
+            return reports[0]
+        return None
+
+
+class SystemReportExpense(SystemReport):
+    @classmethod
+    def fetch_by_date_range(cls, on_or_after=None, before=None, as_dataframe=False):
+        conditions = []
+        if on_or_after:
+            conditions.append('Date_Expense>=[{}]'.format(on_or_after))
+        if before:
+            conditions.append('Date_Expense<[{}]'.format(before))
+        if as_dataframe:
+            df = DataUtil.get_dataframe(cls.fetch('Expense', conditions))
+            df['Date_Expense'] = pd.to_datetime(df['Date_Expense'])
+            return df
+        return [cls(**report, name='Expense') for report in cls.fetch('Expense', conditions)]
+
+
+class SystemReportProduct(SystemReport):
+    name = 'Product'
+    date_field = 'Date_Entered'
+
+    @classmethod
+    def fetch_by_business_unit_name(cls, business_unit_name):
+        conditions = ['BusGroup="{}"'.format(business_unit_name)]
+        return [cls(**report, name='Product') for report in cls.fetch('Product', conditions)]
+
+    @classmethod
+    def fetch_by_date_range(cls, on_or_after=None, before=None, as_dataframe=False):
+        conditions = []
+        if on_or_after:
+            conditions.append('{}>=[{}]'.format(cls.date_field, on_or_after))
+        if before:
+            conditions.append('{}<[{}]'.format(cls.date_field, before))
+        if as_dataframe:
+            df = DataUtil.get_dataframe(cls.fetch(cls.name, conditions))
+            df[cls.date_field] = pd.to_datetime(df[cls.date_field])
+            return df
+        return [cls(**report, name=cls.name) for report in cls.fetch(cls.name, conditions)]
+
+    @classmethod
+    def fetch_by_business_unit_id(cls, business_unit_id, on_or_after=None, before=None, as_dataframe=False):
+        conditions = ['BusGroup="{}"'.format(constants.BUSINESS_UNIT_NAMES[business_unit_id])]
+        if on_or_after:
+            conditions.append('{}>=[{}]'.format(cls.date_field, on_or_after))
+        if before:
+            conditions.append('{}<[{}]'.format(cls.date_field, before))
+        data_dict = cls.fetch(cls.name, conditions)
+        if as_dataframe:
+            df = DataUtil.get_dataframe(data_dict)
+            if len(df) > 0:
+                df[cls.date_field] = pd.to_datetime(df[cls.date_field])
+            return df
+        return [cls(**report, name=cls.name) for report in data_dict] if len(data_dict) > 0 else []
