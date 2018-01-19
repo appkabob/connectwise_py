@@ -22,23 +22,20 @@ class Ticket:
     def __repr__(self):
         return "<Ticket {}>".format(self.id)
 
-    def to_dict(self, include_self=False, schedule_entries=[], time_entries=[]):
+    def to_dict(self, include_self=False, schedule_entries=[], time_entries=[], expense_entries=[]):
         if schedule_entries:
             schedule_entries = [s for s in schedule_entries if s.objectId == self.id]
-        else:
-            schedule_entries = self.fetch_schedule_entries()
         if time_entries:
             time_entries = [t for t in time_entries if t.chargeToId == self.id and 'Ticket' in t.chargeToType]
-        else:
-            time_entries = self.fetch_time_entries()
-
-        future_schedule = [s for s in schedule_entries
-                           if s.dateStart >= datetime.datetime.now().strftime('%Y-%m-%d')]
+        if expense_entries:
+            expense_entries = [e for e in expense_entries if e.chargeToId == self.id and 'Ticket' in e.chargeToType]
+        if schedule_entries:
+            future_schedule = [s for s in schedule_entries if s.dateStart and s.dateStart >= datetime.datetime.now().strftime('%Y-%m-%d')]
         ticket_dict = {}
         ticket_dict['budget_days'] = self.budget_days()
-        ticket_dict['schedule_days'] = sum([s.days() for s in schedule_entries])
-        ticket_dict['future_schedule_days'] = sum([s.days() for s in future_schedule])
-        ticket_dict['actual_days'] = self.actual_days(time_entries)
+        if schedule_entries: ticket_dict['schedule_days'] = sum([s.days() for s in schedule_entries])
+        if schedule_entries: ticket_dict['future_schedule_days'] = sum([s.days() for s in future_schedule])
+        if time_entries: ticket_dict['actual_days'] = self.actual_days(time_entries)
         if include_self: ticket_dict['self'] = self
         return {**vars(self), **ticket_dict}
 
@@ -89,6 +86,11 @@ class Ticket:
         return [cls(**ticket) for ticket in Connectwise.submit_request('service/tickets', conditions)]
 
     @classmethod
+    def fetch_by_business_unit_id(cls, business_unit_id):
+        conditions = 'businessUnitId={}'.format(business_unit_id)
+        return [cls(**ticket) for ticket in Connectwise.submit_request('service/tickets', conditions)]
+
+    @classmethod
     def fetch_by_member_identifier(cls, member_identifier):
         conditions = 'resources contains "{}"'.format(member_identifier)
         return [cls(**ticket) for ticket in Connectwise.submit_request('service/tickets', conditions)]
@@ -120,9 +122,20 @@ class Ticket:
     def expense_cost(self):
         return '${}'.format(sum([expense.amount for expense in self.expense_entries]))
 
-    def fetch_time_entries(self):
-        from .time_entry import TimeEntry
-        self.time_entries = TimeEntry.fetch_by_charge_to_id(self.id)
+    def fetch_expense_entries(self, expense_entries=[]):
+        if expense_entries:
+            self.expense_entries = [e for e in expense_entries if e.chargeToId == self.id and 'Ticket' in e.chargeToType]
+        else:
+            from .expense import ExpenseEntry
+            self.expense_entries = ExpenseEntry.fetch_by_charge_to_id(self.id)
+        return self.expense_entries
+
+    def fetch_time_entries(self, time_entries=[]):
+        if time_entries:
+            self.time_entries = [t for t in time_entries if t.chargeToId == self.id and 'Ticket' in t.chargeToType]
+        else:
+            from .time_entry import TimeEntry
+            self.time_entries = TimeEntry.fetch_by_charge_to_id(self.id)
         return self.time_entries
 
     def actual_hours(self, time_entries=[]):
