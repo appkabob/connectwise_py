@@ -45,6 +45,8 @@ class Report:
         """
         if isinstance(on_or_after, str): on_or_after = datetime.strptime(on_or_after, '%Y-%m-%d')
         if isinstance(before, str): before = datetime.strptime(before, '%Y-%m-%d')
+        if not before:
+            before = datetime.today()
 
         if on_or_after.day == 1 and (on_or_after + relativedelta(months=1)).strftime('%Y%m%d') == before.strftime('%Y%m%d'):
             month = on_or_after.strftime('%B %Y')
