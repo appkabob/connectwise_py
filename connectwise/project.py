@@ -22,6 +22,15 @@ class Project:
         return [cls(**project) for project in Connectwise.submit_request('project/projects')]
 
     @classmethod
+    def fetch_by_est_start(cls, on_or_after=None, before=None):
+        conditions = []
+        if on_or_after:
+            conditions.append('estimatedStart>=[{}]'.format(on_or_after))
+        if before:
+            conditions.append('estimatedStart<[{}]'.format(before))
+        return [cls(**project) for project in Connectwise.submit_request('project/projects', conditions)]
+
+    @classmethod
     def fetch_by_company_id(cls, company_id):
         conditions = 'company/id={}'.format(company_id)
         return [cls(**project) for project in Connectwise.submit_request('project/projects', conditions)]
