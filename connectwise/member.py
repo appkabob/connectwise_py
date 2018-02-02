@@ -17,6 +17,13 @@ class Member:
         return "<Member {}>".format(self.identifier)
 
     @classmethod
+    def fetch_active(cls):
+        conditions = ['identifier!="APIMember" and identifier!="screenconnect" and identifier!="quosal" and identifier!="labtech"']
+        conditions.append('inactiveFlag=false')
+        filters = {'orderBy': 'lastName asc'}
+        return [cls(**member) for member in Connectwise.submit_request('system/members', conditions, filters)]
+
+    @classmethod
     def fetch_member_by_office_email(cls, officeEmail):
         conditions = ['officeEmail="{}"'.format(officeEmail)]
         member = Connectwise.submit_request('system/members', conditions)[0]
@@ -30,7 +37,7 @@ class Member:
 
     @classmethod
     def fetch_all_members(cls):
-        conditions = ['identifier!="APIMember" and identifier!="screenconnect" and identifier!="quosal"']
+        conditions = ['identifier!="APIMember" and identifier!="screenconnect" and identifier!="quosal" and identifier!="labtech"']
         filters = {'orderBy': 'lastName asc'}
         return [cls(**member) for member in Connectwise.submit_request('system/members', conditions, filters)]
 
