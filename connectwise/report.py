@@ -1,3 +1,5 @@
+import re
+import unicodedata
 from datetime import date, datetime, timezone
 from operator import attrgetter
 
@@ -35,6 +37,13 @@ class Report:
 
     def __repr__(self):
         return "<Report {}>".format(self.name)
+
+    @staticmethod
+    def clean_str(value):
+        value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore').decode('ascii')
+        value = re.sub(r'[^\w\s-]', '', value).strip().lower()
+        value = re.sub(r'[-\s]+', '-', value)
+        return value
 
     def _generate_report_content(self):
         pass  # either modify this or create a subclass for each report type and override this method there
